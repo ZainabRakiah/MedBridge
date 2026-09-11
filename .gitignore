@@ -11,6 +11,8 @@ node_modules/
 frontend/node_modules/
 frontend/.next/
 *.tsbuildinfo
+.vercel/
+frontend/.vercel/
 
 # Env files
 .env
