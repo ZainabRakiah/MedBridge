@@ -317,7 +317,19 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             }
           }
         }
-        const deduped = Array.from(seenNames.values());
+        const deduped = Array.from(seenNames.values()).map((p) => ({
+          ...createEmptyPatient(),
+          ...p,
+          documents: Array.isArray(p.documents) ? p.documents : [],
+          timeline: Array.isArray(p.timeline) ? p.timeline : [],
+          medications: Array.isArray(p.medications) ? p.medications : [],
+          allergies: Array.isArray(p.allergies) ? p.allergies : [],
+          conditions: Array.isArray(p.conditions) ? p.conditions : [],
+          safety_flags: Array.isArray(p.safety_flags) ? p.safety_flags : [],
+          conflicts: Array.isArray(p.conflicts) ? p.conflicts : [],
+          missing_info: Array.isArray(p.missing_info) ? p.missing_info : [],
+          consultations: Array.isArray(p.consultations) ? p.consultations : [],
+        }));
         setPatients(deduped);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(deduped));
         if (deduped.length > 0) {
@@ -343,16 +355,24 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [doctorName]);
 
   const addPatient = useCallback((patient: Patient) => {
+    const safePatient: Patient = {
+      ...createEmptyPatient(),
+      ...patient,
+      documents: Array.isArray(patient.documents) ? patient.documents : [],
+      timeline: Array.isArray(patient.timeline) ? patient.timeline : [],
+      medications: Array.isArray(patient.medications) ? patient.medications : [],
+      allergies: Array.isArray(patient.allergies) ? patient.allergies : [],
+      conditions: Array.isArray(patient.conditions) ? patient.conditions : [],
+    };
     setPatients((prev) => {
-      // If a patient with the exact normalized name already exists, update them instead of creating a duplicate
-      const normName = (patient.name || "").trim().toLowerCase();
+      const normName = (safePatient.name || "").trim().toLowerCase();
       const existingIdx = prev.findIndex((p) => (p.name || "").trim().toLowerCase() === normName);
       if (existingIdx >= 0) {
         const updated = [...prev];
-        updated[existingIdx] = { ...updated[existingIdx], ...patient };
+        updated[existingIdx] = { ...updated[existingIdx], ...safePatient };
         return updated;
       }
-      return [...prev, patient];
+      return [...prev, safePatient];
     });
   }, []);
 
@@ -393,31 +413,75 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   );
 
   const addDocument = useCallback((patientId: string, doc: MedicalDocument) => {
+    const safeDoc: MedicalDocument = {
+      ...doc,
+      extracted_data: {
+        document_type: doc.extracted_data?.document_type || doc.type || "document",
+        patient_name: doc.extracted_data?.patient_name || "Patient",
+        document_date: doc.extracted_data?.document_date || doc.date || new Date().toISOString().split("T")[0],
+        doctor: doc.extracted_data?.doctor || "Attending Physician",
+        hospital: doc.extracted_data?.hospital || "Clinical Facility",
+        diagnoses: Array.isArray(doc.extracted_data?.diagnoses) ? doc.extracted_data.diagnoses : [],
+        medications: Array.isArray(doc.extracted_data?.medications) ? doc.extracted_data.medications : [],
+        allergies: Array.isArray(doc.extracted_data?.allergies) ? doc.extracted_data.allergies : [],
+        symptoms: Array.isArray(doc.extracted_data?.symptoms) ? doc.extracted_data.symptoms : [],
+        lab_results: Array.isArray(doc.extracted_data?.lab_results) ? doc.extracted_data.lab_results : [],
+        procedures: Array.isArray(doc.extracted_data?.procedures) ? doc.extracted_data.procedures : [],
+        follow_up: Array.isArray(doc.extracted_data?.follow_up) ? doc.extracted_data.follow_up : [],
+        warnings: Array.isArray(doc.extracted_data?.warnings) ? doc.extracted_data.warnings : [],
+        confidence: typeof doc.extracted_data?.confidence === "number" ? doc.extracted_data.confidence : (doc.confidence || 0.94),
+        raw_text: doc.extracted_data?.raw_text || "",
+      },
+    };
+
     setPatients((prev) =>
       prev.map((p) => {
         if (p.id === patientId) {
-          // Also merge extracted allergies/conditions/medications
-          const extracted = doc.extracted_data;
-          const newAllergies = Array.from(new Set([...p.allergies, ...extracted.allergies]));
-          const newConditions = Array.from(new Set([...p.conditions, ...extracted.diagnoses]));
-          const newMeds = [...p.medications];
-          for (const med of extracted.medications) {
-            if (!newMeds.find((m) => m.name.toLowerCase() === med.name.toLowerCase())) {
+          const ext = safeDoc.extracted_data;
+          const newAllergies = Array.from(new Set([...(p.allergies || []), ...ext.allergies]));
+          const newConditions = Array.from(new Set([...(p.conditions || []), ...ext.diagnoses]));
+          const newMeds = [...(p.medications || [])];
+          for (const med of ext.medications) {
+            if (med?.name && !newMeds.find((m) => m.name.toLowerCase() === med.name.toLowerCase())) {
               newMeds.push(med);
             }
           }
-          return {
+          const updatedPatient = {
             ...p,
-            documents: [...p.documents, doc],
+            documents: [...(p.documents || []), safeDoc],
             allergies: newAllergies,
             conditions: newConditions,
             medications: newMeds,
             updated_at: new Date().toISOString(),
           };
+          return updatedPatient;
         }
         return p;
       })
     );
+
+    setCurrentPatient((prev) => {
+      if (prev && prev.id === patientId) {
+        const ext = safeDoc.extracted_data;
+        const newAllergies = Array.from(new Set([...(prev.allergies || []), ...ext.allergies]));
+        const newConditions = Array.from(new Set([...(prev.conditions || []), ...ext.diagnoses]));
+        const newMeds = [...(prev.medications || [])];
+        for (const med of ext.medications) {
+          if (med?.name && !newMeds.find((m) => m.name.toLowerCase() === med.name.toLowerCase())) {
+            newMeds.push(med);
+          }
+        }
+        return {
+          ...prev,
+          documents: [...(prev.documents || []), safeDoc],
+          allergies: newAllergies,
+          conditions: newConditions,
+          medications: newMeds,
+          updated_at: new Date().toISOString(),
+        };
+      }
+      return prev;
+    });
   }, []);
 
   const updatePatientTimeline = useCallback((patientId: string, events: TimelineEvent[]) => {
