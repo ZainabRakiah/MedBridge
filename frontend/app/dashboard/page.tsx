@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 
 export default function DashboardPage() {
-  const { patients, currentPatient, setCurrentPatient, addPatient } = useApp();
+  const { patients, currentPatient, setCurrentPatient, addPatient, deletePatient } = useApp();
   const [showNewPatient, setShowNewPatient] = useState(false);
   const [newName, setNewName] = useState("");
   const [newAge, setNewAge] = useState("");
@@ -125,21 +125,47 @@ export default function DashboardPage() {
         {/* Patient selector */}
         {patients.length > 0 && (
           <div className="mb-6 flex items-center gap-3 flex-wrap">
-            <span className="text-sm text-slate-400">Patient:</span>
-            <div className="flex gap-2 flex-wrap">
-              {patients.map(p => (
-                <button
-                  key={p.id}
-                  onClick={() => setCurrentPatient(p)}
-                  className={`px-4 py-1.5 rounded-xl text-sm font-medium transition-all ${
-                    currentPatient?.id === p.id
-                      ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20"
-                      : "bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700"
-                  }`}
-                >
-                  {p.name || "Unnamed"}
-                </button>
-              ))}
+            <span className="text-sm text-slate-400 font-medium">Patient:</span>
+            <div className="flex gap-2 flex-wrap items-center">
+              {patients.map(p => {
+                const isSelected = currentPatient?.id === p.id;
+                return (
+                  <div
+                    key={p.id}
+                    className={`inline-flex items-center rounded-xl transition-all border ${
+                      isSelected
+                        ? "bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-600/25"
+                        : "bg-slate-800 text-slate-300 hover:bg-slate-700/80 border-slate-700"
+                    }`}
+                  >
+                    <button
+                      onClick={() => setCurrentPatient(p)}
+                      className="px-4 py-1.5 text-sm font-medium text-left"
+                    >
+                      {p.name || "Unnamed"}
+                    </button>
+                    {patients.length > 1 && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (confirm(`Remove patient "${p.name || "Unnamed"}"?`)) {
+                            deletePatient(p.id);
+                          }
+                        }}
+                        title={`Delete ${p.name || "patient"}`}
+                        aria-label={`Delete ${p.name || "patient"}`}
+                        className={`pr-2.5 pl-1 py-1.5 text-xs font-bold transition-colors ${
+                          isSelected
+                            ? "text-blue-200 hover:text-white"
+                            : "text-slate-500 hover:text-rose-400"
+                        }`}
+                      >
+                        ×
+                      </button>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

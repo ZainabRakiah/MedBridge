@@ -194,6 +194,20 @@ export default function DemoDataSeeder() {
   const { addPatient, setCurrentPatient, patients } = useApp();
 
   useEffect(() => {
+    // Check if Aarav Sharma already exists in patients or storage
+    const stored = localStorage.getItem("medbridge_patients");
+    if (stored) {
+      try {
+        const list = JSON.parse(stored);
+        if (Array.isArray(list) && list.some((p: { name?: string }) => (p.name || "").trim().toLowerCase() === "aarav sharma")) {
+          localStorage.setItem(DEMO_PATIENT_KEY, "true");
+          return;
+        }
+      } catch {
+        // ignore
+      }
+    }
+
     const seeded = localStorage.getItem(DEMO_PATIENT_KEY);
     if (seeded) return;
 

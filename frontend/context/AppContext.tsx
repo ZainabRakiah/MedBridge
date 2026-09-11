@@ -226,6 +226,7 @@ interface AppContextType {
   setCurrentPatient: (patient: Patient | null) => void;
   addPatient: (patient: Patient) => void;
   updatePatient: (patient: Patient) => void;
+  deletePatient: (patientId: string) => void;
   searchPatients: (query: string) => Patient[];
 
   // Document management
@@ -293,7 +294,35 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       try {
-        setPatients(JSON.parse(stored));
+        const parsed: Patient[] = JSON.parse(stored);
+        // Deduplicate patients by normalized name, keeping the one with most complete data
+        const seenNames = new Map<string, Patient>();
+        for (const p of parsed) {
+          const key = (p.name || "").trim().toLowerCase();
+          if (!key) continue;
+          if (!seenNames.has(key)) {
+            seenNames.set(key, p);
+          } else {
+            const existing = seenNames.get(key)!;
+            const existingScore =
+              (existing.documents?.length || 0) * 10 +
+              (existing.timeline?.length || 0) * 5 +
+              (existing.medications?.length || 0) * 2;
+            const currentScore =
+              (p.documents?.length || 0) * 10 +
+              (p.timeline?.length || 0) * 5 +
+              (p.medications?.length || 0) * 2;
+            if (currentScore >= existingScore) {
+              seenNames.set(key, p);
+            }
+          }
+        }
+        const deduped = Array.from(seenNames.values());
+        setPatients(deduped);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(deduped));
+        if (deduped.length > 0) {
+          setCurrentPatient(deduped[0]);
+        }
       } catch {
         setPatients([]);
       }
@@ -314,7 +343,35 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, [doctorName]);
 
   const addPatient = useCallback((patient: Patient) => {
-    setPatients((prev) => [...prev, patient]);
+    setPatients((prev) => {
+      // If a patient with the exact normalized name already exists, update them instead of creating a duplicate
+      const normName = (patient.name || "").trim().toLowerCase();
+      const existingIdx = prev.findIndex((p) => (p.name || "").trim().toLowerCase() === normName);
+      if (existingIdx >= 0) {
+        const updated = [...prev];
+        updated[existingIdx] = { ...updated[existingIdx], ...patient };
+        return updated;
+      }
+      return [...prev, patient];
+    });
+  }, []);
+
+  const deletePatient = useCallback((patientId: string) => {
+    setPatients((prev) => {
+      const updated = prev.filter((p) => p.id !== patientId);
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      } catch (e) {
+        console.error(e);
+      }
+      return updated;
+    });
+    setCurrentPatient((prev) => {
+      if (prev?.id === patientId) {
+        return null;
+      }
+      return prev;
+    });
   }, []);
 
   const updatePatient = useCallback((updated: Patient) => {
@@ -412,6 +469,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setCurrentPatient,
         addPatient,
         updatePatient,
+        deletePatient,
         searchPatients,
         addDocument,
         updatePatientTimeline,
