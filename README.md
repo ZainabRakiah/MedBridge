@@ -1,141 +1,138 @@
-## Project Overview
+# MedBridge — AI Medical Scribe & Medical History Bridge
 
-**Aushadh** is an AI-powered medical scribe designed to assist doctors during patient consultations by automating clinical documentation and safety checks.
-
-The system listens to the doctor–patient conversation, converts the speech into text using AI transcription, and generates structured **SOAP clinical notes**. It also analyzes prescribed medications to detect potential **drug interactions**, suggests relevant **ICD-10 billing codes**, and generates a **print-ready prescription PDF**.
-
-In addition, Aushadh can export consultation records as **FHIR-compliant reports**, enabling interoperability with modern healthcare systems and electronic health records.
-
-By reducing manual documentation, Aushadh helps doctors save time, minimize prescription errors, and focus more on patient care.
+> **Transform messy, fragmented medical information into structured, reviewable, actionable patient context.**  
+> *Sponsored by **Google Antigravity** — Exclusively powered by **Google Gemini 3.8 Flash**.*  
+> **Repository:** https://github.com/ZainabRakiah/MedBridge.git
 
 ---
 
-## Key Features
+## 🏥 Product Overview
 
-- **AI Medical Scribe** – Converts doctor–patient conversations into structured **SOAP clinical notes** automatically.
+**MedBridge** is an AI-powered clinical information assistant that bridges fragmented patient medical records across doctors, hospitals, and consultations.
 
-- **Drug Interaction Detection** – Checks prescribed medications using the **OpenFDA database** to identify potential harmful drug combinations.
-
-- **ICD-10 Code Suggestions** – Automatically recommends relevant **medical billing codes** to support accurate clinical documentation.
-
-- **Prescription PDF Generation** – Generates a **print-ready prescription** after the consultation.
-
-- **FHIR Report Export** – Converts consultation data into **FHIR-compliant healthcare reports** for interoperability with hospital EHR systems.
-
-- **Fast Clinical Workflow** – Completes transcription, analysis, and documentation in **under 90 seconds**.
-# Tech Stack
-
-| Layer | Technology |
-
-| Frontend | Next.js 14, TypeScript, Tailwind CSS |
-| Backend | FastAPI (Python) |
-| Transcription | Groq Whisper API |
-| SOAP Generation | Groq + LLaMA 3.3 70B |
-| Drug Safety | OpenFDA API |
-| PDF Export | ReportLab |
-| Storage | Local Storage (Prototype) |
-
-Total infrastructure cost to run this prototype: **₹0**
+Patients often present with messy piles of discharge summaries, paper prescriptions, lab reports, and verbal symptom explanations. MedBridge intakes these heterogeneous sources, extracts structured clinical data with confidence scoring and source tracing, reconciles conflicting medication and allergy history, and generates actionable outputs for doctors and emergency triage teams.
 
 ---
 
-# Running the Project Locally
+## ⚡ What Does Each Core Feature Do?
 
-You need:
+### 1. 🚨 Emergency Triage Card (`/triage`)
+- **What is Triage doing?** In emergency and triage settings, clinicians have only seconds to identify life-critical risks before administering treatment.
+- **Critical Risk Synthesis:** Triage pulls the patient's most critical medical facts into a single, high-contrast, distraction-free view:
+  - **Severe Allergies:** Immediate red flags (e.g. Penicillin allergy).
+  - **Active Medications & Dosages:** Prevents administering contraindicated drugs.
+  - **High-Risk Conditions:** Flags cardiovascular risk, diabetes, bleeding risk, and renal status.
+  - **Critical Warnings:** Highlights abnormal vitals or lab extremes (e.g. severe anemia, high HbA1c).
+- **Offline-Readable QR Code:** Generates a signed, self-contained Base64 QR code. First responders, paramedics, or triage nurses can scan the QR code on an emergency smartphone or tablet **without requiring an internet connection, VPN, or EHR database login**.
 
-- Node.js
-- Python
-- A free **Groq API key**
+### 2. ⏳ Patient Timeline & Rebuild Option (`/timeline`)
+- **What is Rebuild doing?** As new records are ingested (discharge summaries, prescriptions, lab results, or consultation transcripts), patient events become fragmented.
+- **Chronological Synthesis:** Clicking **"Rebuild Timeline"** re-analyzes all clinical records, normalizes dates, deduplicates events, and re-orders the patient's journey chronologically (diagnoses, hospital discharges, medication start/change dates, abnormal lab results, and verbal symptoms).
+- **Voice Symptom Intake:** Patients can speak or enter their symptom descriptions, which Google Gemini 3.8 Flash extracts into structured clinical symptom events.
 
-Get a key from:
+### 3. 💊 Medication Reconciliation & Safety (`/medications`)
+- Identifies **active, stopped, and changed** medications across past prescriptions.
+- Detects **contradictions and conflicts** (e.g., patient discharged on Metformin vs. prescribed Glimepiride).
+- Cross-checks drug-drug interactions via OpenFDA and Google Gemini clinical reasoning.
 
-https://console.groq.com
+### 4. 📋 Clinical Summary & Missing Info Checklist (`/summary`)
+- Synthesizes patient context for physicians before a visit.
+- Surfaces an interactive **Missing Information Checklist** alerting doctors to unverified data (e.g. allergy reaction type, unconfirmed dosages).
 
----
-
-## Step 1 — Clone Repository
-
-```bash
-git clone https://github.com/YOUR_USERNAME/aushadh.git
-cd aushadh
-```
-
-## Step 2 — Start Backend
-
-```bash
-cd backend
-python -m venv venv
-```
-
-Activate virtual environment:
-
-**Windows**
-
-```bash
-venv\Scripts\activate
-```
-
-**Mac / Linux**
-
-```bash
-source venv/bin/activate
-```
-
-Install dependencies:
-
-```bash
-pip install -r requirements.txt
-```
+### 5. 🎙️ AI Medical Scribe (`/consultation`)
+- Listens to real-time doctor-patient conversations.
+- Powered exclusively by **Google Gemini 3.8 Flash** to transcribe audio, generate structured SOAP notes, recommend ICD-10 billing codes, and export prescription PDFs.
 
 ---
 
-## Step 3 — Add Groq API Key
+## 🏗️ Architecture & Tech Stack
 
-Create a `.env` file inside the **backend** folder and add:
-
-```
-GROQ_API_KEY=your_api_key_here
-```
-
----
-
-## Step 4 — Run Backend
-
-```bash
-uvicorn main:app --reload --port 8000
-```
-
-Backend will run at:
-
-```
-http://localhost:8000
-```
+| Layer | Technologies |
+| :--- | :--- |
+| **Sponsorship** | **Google Antigravity** |
+| **AI Foundation** | **Google Gemini 3.8 Flash exclusively** (Multimodal Vision, Audio Transcription, Clinical Synthesis, SOAP Generation) |
+| **Frontend** | Next.js 14 (App Router), TypeScript, Tailwind CSS, Universal Inter Typography, Lucide Icons |
+| **State & Storage** | React Context (`AppContext`) with `localStorage` persistence & instant offline recovery |
+| **Backend API** | FastAPI (Python 3.11+), Pydantic v2, Uvicorn, HTTPX |
+| **Drug Safety** | OpenFDA API with fallback rules-based safety database |
+| **Standards & Export** | HL7 FHIR R4 JSON Bundles, ReportLab PDF generation, QRCode (Pillow) |
 
 ---
 
-## Step 5 — Run Frontend
+## 🚀 Running the Project Locally (Step-by-Step Guide)
 
-```bash
-cd frontend
-npm install
-npm run dev
-```
+To run MedBridge on your machine, open **two terminal windows**:
 
-Open in browser:
+### Terminal 1 — Start the Backend
 
-```
-http://localhost:3000
-```
-## Future Enhancements
+1. Navigate to the backend directory:
+   ```bash
+   cd backend
+   ```
+2. Activate the Python virtual environment:
+   ```bash
+   source venv/bin/activate    # On Windows: venv\Scripts\activate
+   ```
+3. Set your Google Gemini API key in `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+   *(Ensure `GOOGLE_GENERATIVE_AI_API_KEY` is set to your Gemini API key)*
+4. Launch the FastAPI server:
+   ```bash
+   uvicorn main:app --reload --port 8000
+   ```
+5. **Verify:** Open your browser to:
+   - Health check: `http://localhost:8000/health`
+   - Interactive API docs: `http://localhost:8000/docs`
 
-- **ABHA Integration** – Connect with India's Digital Health ID system to access and update patient records across hospitals.
+---
 
-- **Multilingual Support** – Enable consultations and transcription in multiple Indian languages.
+### Terminal 2 — Start the Frontend
 
-- **Cloud-Based EHR Sync** – Securely store and sync patient records across devices and hospital branches.
+1. In a new terminal tab, navigate to the frontend directory:
+   ```bash
+   cd frontend
+   ```
+2. Start the Next.js development server:
+   ```bash
+   npm run dev
+   ```
+3. **Verify:** Open your browser to:
+   - **`http://localhost:3000`**
 
-- **Mobile Application** – Allow doctors to use Aushadh directly from a smartphone during consultations.
+---
 
-- **AI Health Insights** – Use aggregated data to provide predictive insights and clinical decision support.
+## 👤 Pre-Loaded Synthetic Demo Patient — Aarav Sharma
 
-- **Hospital & Insurance Integration** – Automate billing workflows and streamline insurance claim processing.
+MedBridge comes pre-loaded with synthetic patient **Aarav Sharma**:
+- **Patient:** Aarav Sharma (54M, Type 2 Diabetes, Hypertension)
+- **Built-in Intentional Conflict:**
+  - Discharge summary shows *Metformin 500mg BD*
+  - Recent prescription shows *Glimepiride 2mg OD*
+  - Patient reports stopped Metformin due to GI intolerance
+  - System flags the medication conflict for doctor resolution!
+- **Built-in Safety Alert:**
+  - Penicillin allergy listed without reaction type (flagged in Missing Information checklist)
+  - High HbA1c (7.8%) and low Hemoglobin (10.2 g/dL) in lab investigations
+- **Explore:** Navigate directly to `/documents`, `/timeline`, `/medications`, `/summary`, or `/triage`.
+
+---
+
+## 🔌 API Endpoints Summary
+
+| Method | Path | Description | Powered By |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/documents/upload` | Upload medical document for multimodal OCR & structured extraction | **Google Gemini 3.8 Flash** |
+| `POST` | `/api/timeline/generate` | Generate unified chronological timeline from documents & history | **Google Gemini 3.8 Flash** |
+| `POST` | `/api/timeline/extract-voice` | Extract timeline symptoms from patient verbal recording | **Google Gemini 3.8 Flash** |
+| `POST` | `/api/safety/check-medications` | Reconcile active meds, check drug-drug interactions & allergy flags | OpenFDA + **Google Gemini** |
+| `POST` | `/api/summary/generate` | Generate synthesized clinical summary with conflict & missing info detection | **Google Gemini 3.8 Flash** |
+| `POST` | `/api/triage/generate` | Build emergency triage card with critical alerts & precautions | **Google Gemini 3.8 Flash** |
+| `POST` | `/api/triage/qr-code` | Generate Base64 offline QR code for triage card | QRCode (Pillow) |
+| `POST` | `/api/fhir/export` | Export patient record as FHIR R4 Bundle | HL7 FHIR R4 |
+| `POST` | `/api/referral/generate` | Draft specialist referral note from patient context | **Google Gemini 3.8 Flash** |
+| `POST` | `/transcribe` | Transcribe consultation audio | **Google Gemini 3.8 Flash** |
+| `POST` | `/generate-note` | Generate structured SOAP notes from consultation transcript | **Google Gemini 3.8 Flash** |
+| `POST` | `/check-interactions` | Check legacy medication list against OpenFDA | OpenFDA API |
+| `POST` | `/export-pdf` | Download print-ready prescription PDF | ReportLab |

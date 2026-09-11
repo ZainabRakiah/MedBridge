@@ -45,9 +45,31 @@ export function createPatient(data: {
 }): Patient {
   const patient: Patient = {
     id: `PAT-${Date.now()}`,
-    ...data,
+    name: data.name,
+    date_of_birth: "",
+    age: data.age,
+    sex: data.gender,
+    gender: data.gender,
+    phone: data.phone,
+    blood_group: "",
+    allergies: data.allergies
+      ? data.allergies.split(",").map((s) => s.trim()).filter(Boolean)
+      : [],
+    conditions: data.chronic_conditions
+      ? data.chronic_conditions.split(",").map((s) => s.trim()).filter(Boolean)
+      : [],
+    chronic_conditions: data.chronic_conditions,
+    medications: [],
+    timeline: [],
+    documents: [],
+    safety_flags: [],
+    conflicts: [],
+    missing_info: [],
+    clinical_summary: null,
+    triage_card: null,
     consultations: [],
     created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
   };
 
   const patients = loadPatients();

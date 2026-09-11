@@ -24,7 +24,7 @@ import clsx from "clsx";
 import StepIndicator from "@/components/StepIndicator";
 import { useApp } from "@/context/AppContext";
 import type { Patient, SOAPNote, Consultation } from "@/context/AppContext";
-import { transcribeAudio, generateNote, checkInteractions } from "@/services/api";
+import { transcribeAudio, generateSoapNote as generateNote, checkLegacyInteractions as checkInteractions } from "@/services/api";
 import {
   searchPatients as ehrSearch,
   createPatient,
@@ -208,7 +208,7 @@ export default function ConsultationPage() {
       if (meds.length >= 2) {
         setIsCheckingDrugSafety(true);
         const interactionResult = await checkInteractions(meds);
-        setInteractions(interactionResult.interactions);
+        setInteractions(interactionResult.interactions as DrugInteraction[]);
       }
 
       setStep(4);
@@ -396,7 +396,7 @@ export default function ConsultationPage() {
                   <span className="text-xs text-danger font-medium flex items-center gap-1">
                     <AlertTriangle className="h-3 w-3" /> Allergies:
                   </span>
-                  {currentPatient.allergies.split(",").map((a) => (
+                  {(Array.isArray(currentPatient.allergies) ? currentPatient.allergies : (currentPatient.allergies as unknown as string).split(",")).map((a) => (
                     <span
                       key={a}
                       className="text-xs bg-danger/10 text-danger px-2 py-0.5 rounded-full"
@@ -553,7 +553,9 @@ export default function ConsultationPage() {
             {currentPatient.allergies && (
               <span className="text-xs bg-danger/10 text-danger px-2 py-1 rounded-full flex items-center gap-1">
                 <AlertTriangle className="h-3 w-3" />
-                {currentPatient.allergies}
+                {Array.isArray(currentPatient.allergies)
+                  ? currentPatient.allergies.join(", ")
+                  : currentPatient.allergies}
               </span>
             )}
           </div>

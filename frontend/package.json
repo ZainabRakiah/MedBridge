@@ -1,8 +1,8 @@
 {
-  "name": "aushadh-frontend",
-  "version": "1.0.0",
+  "name": "medbridge-frontend",
+  "version": "2.0.0",
   "private": true,
-  "description": "AI-powered medical scribe frontend for Indian doctors",
+  "description": "MedBridge — AI Medical Scribe & Medical History Bridge",
   "scripts": {
     "dev": "next dev -p 3000",
     "build": "next build",
@@ -13,8 +13,10 @@
     "clsx": "^2.1.1",
     "lucide-react": "^0.424.0",
     "next": "14.2.0",
+    "qrcode": "^1.5.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-dropzone": "^20.1.1",
     "recharts": "^2.12.7"
   },
   "devDependencies": {

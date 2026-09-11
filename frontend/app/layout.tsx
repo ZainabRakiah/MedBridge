@@ -8,8 +8,8 @@ import DemoDataSeeder from "@/components/DemoDataSeeder";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Aushadh - AI Medical Scribe",
-  description: "AI-powered clinical documentation for Indian doctors",
+  title: "MedBridge — AI Medical History Bridge",
+  description: "Transform fragmented medical history into a verified clinical bridge. AI-powered document extraction, timeline, medication safety, triage cards and FHIR export.",
 };
 
 export default function RootLayout({

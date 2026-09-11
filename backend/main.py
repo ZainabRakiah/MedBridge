@@ -1,3 +1,18 @@
+"""MedBridge — FastAPI Backend
+
+Extends the original Aushadh AI Medical Scribe with:
+- Medical document extraction (Gemini multimodal)
+- Patient timeline generation
+- Conflict detection
+- Missing information engine
+- Medication safety bridge
+- Emergency triage card + QR
+- Expanded FHIR R4 Bundle export
+- Referral generation
+
+Original scribe features (transcription, SOAP, PDF export) are preserved.
+"""
+
 import os
 import tempfile
 from datetime import datetime
@@ -10,9 +25,19 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 from pydantic import BaseModel
 
+# Original modules (preserved)
 from soap_prompt import generate_soap_note
 from pdf_generator import generate_pdf
 from fhir_template import build_fhir_composition
+
+# New MedBridge modules
+from api.documents import router as documents_router
+from api.timeline import router as timeline_router
+from api.triage import router as triage_router
+from api.fhir import router as fhir_router
+from api.referral import router as referral_router
+from api.medications import router as medications_router
+from config.settings import ALLOWED_ORIGINS
 
 load_dotenv()
 
@@ -20,36 +45,49 @@ load_dotenv()
 whisper_model = None
 
 
+def _load_whisper_background():
+    global whisper_model
+    try:
+        from faster_whisper import WhisperModel
+        whisper_model = WhisperModel("base", device="cpu", compute_type="int8")
+    except Exception as e:
+        pass
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Load the Whisper model once at startup."""
-    global whisper_model
-    from faster_whisper import WhisperModel
-
-    print("Loading Whisper model... please wait")
-    whisper_model = WhisperModel("base", device="cpu", compute_type="int8")
-    print("Whisper ready ✓")
+    """Instant startup for MedBridge API (Google Gemini 3.8 Flash native)."""
+    import threading
+    threading.Thread(target=_load_whisper_background, daemon=True).start()
     yield
 
 
 app = FastAPI(
-    title="Aushadh API",
-    description="AI-powered medical scribe backend for Indian doctors",
-    version="1.0.0",
+    title="MedBridge API",
+    description="AI-powered medical history bridge. Transforms fragmented patient records into verified clinical context.",
+    version="2.0.0",
     lifespan=lifespan,
 )
 
-# CORS — allow the Next.js frontend to communicate with the API
+# CORS — allow the Next.js frontend
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# ── Mount new MedBridge routers ──
+app.include_router(documents_router)
+app.include_router(timeline_router)
+app.include_router(triage_router)
+app.include_router(fhir_router)
+app.include_router(referral_router)
+app.include_router(medications_router)
 
-# ── Pydantic models ──
+
+# ── Pydantic models (original) ───────────────────────────────────────────────
 
 class GenerateNoteRequest(BaseModel):
     transcript: str
@@ -81,94 +119,111 @@ class ExportFHIRRequest(BaseModel):
 # Health Check
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-
 @app.get("/health")
 async def health_check():
-    """Health check endpoint to verify the API is running."""
-    return {"status": "ok"}
+    """Health check endpoint."""
+    from config.settings import GEMINI_API_KEY, GEMINI_MODEL
+    return {
+        "status": "ok",
+        "service": "MedBridge API",
+        "provider": "Google Antigravity & Google Gemini",
+        "version": "2.0.0",
+        "model": GEMINI_MODEL,
+        "gemini": bool(GEMINI_API_KEY),
+        "whisper": whisper_model is not None,
+        "disclaimer": "MedBridge is an AI clinical information tool. All AI-generated content requires clinician verification.",
+    }
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# Audio Transcription
+# Audio Transcription (Google Gemini 3.8 Flash + Whisper fallback)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
 
 @app.post("/transcribe")
 async def transcribe_audio(file: UploadFile = File(...)):
-    """Accept an audio file and return a Whisper transcription."""
+    """Accept an audio file and return clinical transcription using Google Gemini."""
+    from config.settings import GEMINI_API_KEY
+    from services.gemini_service import transcribe_audio_gemini
 
-    if whisper_model is None:
-        raise HTTPException(status_code=503, detail="Whisper model not loaded yet")
+    contents = await file.read()
+    mime_type = file.content_type or "audio/webm"
 
-    # Save uploaded file to a temp location
-    suffix = os.path.splitext(file.filename or "audio.webm")[1]
-    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
-    try:
-        contents = await file.read()
-        tmp.write(contents)
-        tmp.close()
+    # 1. Primary: Google Gemini Native Audio Transcription
+    if GEMINI_API_KEY:
+        try:
+            result = await transcribe_audio_gemini(contents, mime_type)
+            if result and result.get("transcript"):
+                return result
+        except Exception:
+            pass  # Fall back to local whisper if loaded
 
-        # Run transcription with VAD filter to skip silence
-        segments, info = whisper_model.transcribe(
-            tmp.name,
-            vad_filter=True,
-        )
+    # 2. Secondary fallback: Local Faster-Whisper
+    if whisper_model is not None:
+        suffix = os.path.splitext(file.filename or "audio.webm")[1]
+        tmp = tempfile.NamedTemporaryFile(delete=False, suffix=suffix)
+        try:
+            tmp.write(contents)
+            tmp.close()
 
-        # Collect all segment texts
-        transcript_parts = []
-        for segment in segments:
-            transcript_parts.append(segment.text.strip())
+            segments, info = whisper_model.transcribe(tmp.name, vad_filter=True)
+            transcript_parts = [segment.text.strip() for segment in segments]
+            transcript = " ".join(transcript_parts)
 
-        transcript = " ".join(transcript_parts)
+            return {
+                "transcript": transcript,
+                "language": info.language,
+                "duration": round(info.duration, 2),
+            }
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Transcription failed: {str(e)}")
+        finally:
+            if os.path.exists(tmp.name):
+                os.unlink(tmp.name)
 
-        return {
-            "transcript": transcript,
-            "language": info.language,
-            "duration": round(info.duration, 2),
-        }
-
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Transcription failed: {str(e)}")
-
-    finally:
-        # Always clean up the temp file
-        if os.path.exists(tmp.name):
-            os.unlink(tmp.name)
+    raise HTTPException(status_code=500, detail="Transcription service unavailable (Gemini API key required)")
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# SOAP Note Generation (Claude AI)
+# SOAP Note Generation (Google Gemini 3.8 Flash)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
 
 @app.post("/generate-note")
 async def generate_note(request: GenerateNoteRequest):
-    """Send transcript to Claude and return a structured SOAP note."""
-
-    api_key = os.getenv("GROQ_API_KEY")
-    if not api_key:
-        raise HTTPException(status_code=500, detail="GROQ_API_KEY not configured")
+    """Generate a structured SOAP note from a consultation transcript using Google Gemini 3.8 Flash."""
+    from config.settings import GEMINI_API_KEY
 
     try:
         soap_note = await generate_soap_note(
             transcript=request.transcript,
             patient_history=request.patient_history,
-            api_key=api_key,
+            api_key=GEMINI_API_KEY,
         )
         return soap_note
-
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Note generation failed: {str(e)}")
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# Drug Interaction Check (OpenFDA)
-# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+# Drug Interaction Check (preserved, enhanced)
+# ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+KNOWN_INTERACTIONS = [
+    {"drugs": ["aspirin", "ibuprofen"], "severity": "HIGH", "description": "Increased risk of bleeding and reduced cardioprotective effect of aspirin. NSAIDs may antagonize antiplatelet activity."},
+    {"drugs": ["aspirin", "warfarin"], "severity": "HIGH", "description": "Significantly increased bleeding risk. Combined anticoagulant and antiplatelet effect."},
+    {"drugs": ["metformin", "alcohol"], "severity": "HIGH", "description": "Increased risk of lactic acidosis."},
+    {"drugs": ["amlodipine", "simvastatin"], "severity": "MODERATE", "description": "Amlodipine may increase simvastatin levels, raising risk of myopathy."},
+    {"drugs": ["warfarin", "paracetamol"], "severity": "MODERATE", "description": "Regular paracetamol use may enhance anticoagulant effect of warfarin."},
+    {"drugs": ["aspirin", "naproxen"], "severity": "HIGH", "description": "NSAIDs may reduce cardioprotective effects of aspirin and increase GI bleeding risk."},
+    {"drugs": ["ibuprofen", "warfarin"], "severity": "HIGH", "description": "Increased bleeding risk. NSAIDs inhibit platelet function and may displace warfarin."},
+    {"drugs": ["metformin", "iodine"], "severity": "MODERATE", "description": "Risk of acute kidney injury and lactic acidosis with iodinated contrast media."},
+    {"drugs": ["atorvastatin", "clarithromycin"], "severity": "HIGH", "description": "Clarithromycin inhibits statin metabolism, increasing risk of myopathy."},
+    {"drugs": ["amlodipine", "clarithromycin"], "severity": "MODERATE", "description": "Clarithromycin may increase amlodipine levels causing hypotension."},
+]
 
 
 @app.post("/check-interactions")
 async def check_interactions(request: CheckInteractionsRequest):
-    """Check drug interactions using OpenFDA + known interaction database."""
+    """Check drug interactions using known interaction database + OpenFDA."""
 
     medications = request.medications
     interactions: list[dict] = []
@@ -176,61 +231,6 @@ async def check_interactions(request: CheckInteractionsRequest):
     if len(medications) < 2:
         return {"interactions": [], "checked": True}
 
-    # ── Known critical interactions (hardcoded for reliability) ──
-    KNOWN_INTERACTIONS = [
-        {
-            "drugs": ["aspirin", "ibuprofen"],
-            "severity": "HIGH",
-            "description": "Increased risk of bleeding and reduced cardioprotective effect of aspirin. NSAIDs may antagonize antiplatelet activity.",
-        },
-        {
-            "drugs": ["aspirin", "warfarin"],
-            "severity": "HIGH",
-            "description": "Significantly increased bleeding risk. Combined anticoagulant and antiplatelet effect.",
-        },
-        {
-            "drugs": ["metformin", "alcohol"],
-            "severity": "HIGH",
-            "description": "Increased risk of lactic acidosis.",
-        },
-        {
-            "drugs": ["amlodipine", "simvastatin"],
-            "severity": "MODERATE",
-            "description": "Amlodipine may increase simvastatin levels, raising risk of myopathy.",
-        },
-        {
-            "drugs": ["warfarin", "paracetamol"],
-            "severity": "MODERATE",
-            "description": "Regular paracetamol use may enhance anticoagulant effect of warfarin.",
-        },
-        {
-            "drugs": ["aspirin", "naproxen"],
-            "severity": "HIGH",
-            "description": "NSAIDs may reduce cardioprotective effects of aspirin and increase GI bleeding risk.",
-        },
-        {
-            "drugs": ["ibuprofen", "warfarin"],
-            "severity": "HIGH",
-            "description": "Increased bleeding risk. NSAIDs inhibit platelet function and may displace warfarin.",
-        },
-        {
-            "drugs": ["metformin", "iodine"],
-            "severity": "MODERATE",
-            "description": "Risk of acute kidney injury and lactic acidosis with iodinated contrast media.",
-        },
-        {
-            "drugs": ["atorvastatin", "clarithromycin"],
-            "severity": "HIGH",
-            "description": "Clarithromycin inhibits statin metabolism, increasing risk of myopathy.",
-        },
-        {
-            "drugs": ["amlodipine", "clarithromycin"],
-            "severity": "MODERATE",
-            "description": "Clarithromycin may increase amlodipine levels causing hypotension.",
-        },
-    ]
-
-    # Check every unique pair
     med_lower = [m.lower().strip() for m in medications]
 
     for i in range(len(med_lower)):
@@ -238,7 +238,6 @@ async def check_interactions(request: CheckInteractionsRequest):
             drug1 = med_lower[i]
             drug2 = med_lower[j]
 
-            # Check against known interactions
             for known in KNOWN_INTERACTIONS:
                 k_drugs = known["drugs"]
                 if (drug1 in k_drugs[0] or k_drugs[0] in drug1) and \
@@ -260,7 +259,6 @@ async def check_interactions(request: CheckInteractionsRequest):
                     })
                     break
 
-    # Also try OpenFDA as backup
     if not interactions:
         async with httpx.AsyncClient(timeout=10.0) as client:
             for i in range(len(medications)):
@@ -272,7 +270,7 @@ async def check_interactions(request: CheckInteractionsRequest):
                             "https://api.fda.gov/drug/event.json",
                             params={
                                 "search": f'patient.drug.medicinalproduct:"{drug1}"+AND+patient.drug.medicinalproduct:"{drug2}"',
-                                "limit": 3
+                                "limit": 3,
                             },
                         )
                         if response.status_code == 200:
@@ -299,46 +297,39 @@ async def check_interactions(request: CheckInteractionsRequest):
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# PDF Export
+# PDF Export (preserved)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
 
 @app.post("/export-pdf")
 async def export_pdf(request: ExportPDFRequest):
-    """Generate a clinical PDF report and return it as a file download."""
-
+    """Generate a clinical PDF report."""
     try:
         patient_dict = request.patient_info.model_dump()
         pdf_bytes = generate_pdf(request.soap_note, patient_dict)
 
-        # Build filename: aushadh_{patient_name}_{date}.pdf
         safe_name = request.patient_info.patient_name.replace(" ", "_")
         date_str = datetime.now().strftime("%Y%m%d")
-        filename = f"aushadh_{safe_name}_{date_str}.pdf"
+        filename = f"medbridge_{safe_name}_{date_str}.pdf"
 
         return Response(
             content=pdf_bytes,
             media_type="application/pdf",
             headers={"Content-Disposition": f'attachment; filename="{filename}"'},
         )
-
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"PDF generation failed: {str(e)}")
 
 
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# FHIR R4 Export
+# Legacy FHIR Composition Export (preserved for backward compat)
 # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-
 @app.post("/export-fhir")
-async def export_fhir(request: ExportFHIRRequest):
-    """Generate a FHIR R4 Composition resource from a SOAP note."""
-
+async def export_fhir_legacy(request: ExportFHIRRequest):
+    """Generate a FHIR R4 Composition resource from a SOAP note (legacy endpoint)."""
     try:
         patient_dict = request.patient_info.model_dump()
         fhir_resource = build_fhir_composition(request.soap_note, patient_dict)
         return fhir_resource
-
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"FHIR export failed: {str(e)}")

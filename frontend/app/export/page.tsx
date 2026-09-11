@@ -14,7 +14,19 @@ import {
 import clsx from "clsx";
 import { useApp } from "@/context/AppContext";
 import type { Consultation, SOAPNote } from "@/context/AppContext";
-import { exportFhir, exportPdf } from "@/services/api";
+import { exportPdf } from "@/services/api";
+
+// Compatibility shim: the old export page uses the legacy /export-fhir endpoint
+async function exportFhir(soapNote: Record<string, unknown>, patientInfo: unknown): Promise<Record<string, unknown>> {
+  const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  const res = await fetch(`${API_BASE}/export-fhir`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ soap_note: soapNote, patient_info: patientInfo }),
+  });
+  if (!res.ok) throw new Error("FHIR export failed");
+  return res.json();
+}
 
 type ExportType = "pdf" | "fhir" | null;
 
