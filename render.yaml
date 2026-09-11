@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: medbridge-api
+    runtime: python
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    plan: free
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GOOGLE_GENERATIVE_AI_API_KEY
+        sync: false
+      - key: QR_HMAC_SECRET
+        generateValue: true
+      - key: ALLOWED_ORIGINS
+        value: https://medbridge-frontend.onrender.com
+
+  - type: web
+    name: medbridge-frontend
+    runtime: node
+    rootDir: frontend
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start -- -p $PORT
+    healthCheckPath: /
+    plan: free
+    envVars:
+      - key: NEXT_PUBLIC_API_URL
+        value: https://medbridge-api.onrender.com
