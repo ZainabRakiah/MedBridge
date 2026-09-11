@@ -41,30 +41,30 @@ const sectionStyles = {
   subjective: {
     title: "Subjective",
     short: "S",
-    ring: "ring-blue-100",
-    header: "bg-blue-50 text-blue-700 border-blue-100",
-    badge: "bg-blue-100 text-blue-700",
+    ring: "ring-blue-500/20",
+    header: "bg-blue-950/40 text-blue-300 border-blue-800/40",
+    badge: "bg-blue-600/20 text-blue-400",
   },
   objective: {
     title: "Objective",
     short: "O",
-    ring: "ring-purple-100",
-    header: "bg-purple-50 text-purple-700 border-purple-100",
-    badge: "bg-purple-100 text-purple-700",
+    ring: "ring-purple-500/20",
+    header: "bg-purple-950/40 text-purple-300 border-purple-800/40",
+    badge: "bg-purple-600/20 text-purple-400",
   },
   assessment: {
     title: "Assessment",
     short: "A",
-    ring: "ring-green-100",
-    header: "bg-green-50 text-green-700 border-green-100",
-    badge: "bg-green-100 text-green-700",
+    ring: "ring-emerald-500/20",
+    header: "bg-emerald-950/40 text-emerald-300 border-emerald-800/40",
+    badge: "bg-emerald-600/20 text-emerald-400",
   },
   plan: {
     title: "Plan",
     short: "P",
-    ring: "ring-orange-100",
-    header: "bg-orange-50 text-orange-700 border-orange-100",
-    badge: "bg-orange-100 text-orange-700",
+    ring: "ring-amber-500/20",
+    header: "bg-amber-950/40 text-amber-300 border-amber-800/40",
+    badge: "bg-amber-600/20 text-amber-400",
   },
 } as const;
 
@@ -99,20 +99,20 @@ function getConfidenceState(confidence: string | undefined, needsReview: boolean
   if (needsReview) {
     return {
       label: "REVIEW NEEDED",
-      className: "bg-orange-100 text-orange-700 ring-1 ring-orange-200",
+      className: "bg-amber-500/15 text-amber-300 border border-amber-500/30",
     };
   }
 
   if ((confidence || "").toLowerCase().includes("high")) {
     return {
       label: "HIGH",
-      className: "bg-green-100 text-green-700 ring-1 ring-green-200",
+      className: "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30",
     };
   }
 
   return {
     label: "REVIEW NEEDED",
-    className: "bg-orange-100 text-orange-700 ring-1 ring-orange-200",
+    className: "bg-amber-500/15 text-amber-300 border border-amber-500/30",
   };
 }
 
@@ -237,33 +237,33 @@ export default function ExportPage() {
   const planConfidence = getConfidenceState(soapNote.plan.confidence, soapNote.plan.needs_review);
 
   return (
-    <section className="min-h-[calc(100vh-4rem)] bg-slate-50 px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
+    <section className="min-h-screen bg-[#0a0f1e] text-slate-100 px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
       <div className="mx-auto max-w-7xl">
         <div
-          className="mb-6 overflow-hidden rounded-[28px] text-white shadow-lg"
-          style={{ background: "linear-gradient(135deg, #1a5276 0%, #21618c 55%, #2980b9 100%)" }}
+          className="mb-6 overflow-hidden rounded-[28px] text-white shadow-2xl border border-blue-500/20"
+          style={{ background: "linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #2563eb 100%)" }}
         >
           <div className="flex flex-col gap-6 px-6 py-8 sm:px-8 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <p className="text-sm font-medium uppercase tracking-[0.2em] text-white/70">Aushadh Export Center</p>
-              <h1 className="mt-2 text-3xl font-semibold sm:text-4xl">Consultation ready for sharing</h1>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-white/80 sm:text-base">
-                Review the final SOAP note, validate coded findings, and export a professional PDF or ABDM-ready FHIR R4 bundle.
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-200/80">MedBridge Export Center</p>
+              <h1 className="mt-2 text-3xl font-bold sm:text-4xl text-white">Consultation Ready for Sharing</h1>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-blue-100/80 sm:text-base">
+                Review the synthesized SOAP note, validate findings, and export a professional PDF or ABDM-ready FHIR R4 bundle.
               </p>
             </div>
 
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
               <div className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 backdrop-blur-sm">
-                <div className="text-xs uppercase tracking-wide text-white/70">Patient</div>
-                <div className="mt-1 text-sm font-semibold">{activePatient.name}</div>
+                <div className="text-xs uppercase tracking-wide text-blue-200/70">Patient</div>
+                <div className="mt-1 text-sm font-semibold text-white">{activePatient.name}</div>
               </div>
               <div className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 backdrop-blur-sm">
-                <div className="text-xs uppercase tracking-wide text-white/70">Doctor</div>
-                <div className="mt-1 text-sm font-semibold">{doctorName}</div>
+                <div className="text-xs uppercase tracking-wide text-blue-200/70">Doctor</div>
+                <div className="mt-1 text-sm font-semibold text-white">{doctorName}</div>
               </div>
               <div className="rounded-2xl border border-white/15 bg-white/10 px-4 py-3 backdrop-blur-sm col-span-2 sm:col-span-1">
-                <div className="text-xs uppercase tracking-wide text-white/70">Consultation</div>
-                <div className="mt-1 text-sm font-semibold">{formatCompactDate(activeConsultation.date)}</div>
+                <div className="text-xs uppercase tracking-wide text-blue-200/70">Consultation</div>
+                <div className="mt-1 text-sm font-semibold text-white">{formatCompactDate(activeConsultation.date)}</div>
               </div>
             </div>
           </div>
@@ -271,25 +271,25 @@ export default function ExportPage() {
 
         <div className="grid gap-6 lg:grid-cols-[minmax(0,1.55fr)_minmax(320px,0.95fr)] lg:items-start">
           <div className="space-y-5">
-            <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-              <div className="flex flex-col gap-3 border-b border-slate-100 pb-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="rounded-3xl border border-slate-700/60 bg-slate-900/70 p-5 shadow-xl sm:p-6 backdrop-blur-sm">
+              <div className="flex flex-col gap-3 border-b border-slate-800 pb-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <h2 className="text-xl font-semibold text-slate-900">SOAP Note Preview</h2>
-                  <p className="mt-1 text-sm text-slate-500">Read-only clinical summary prepared from the approved consultation.</p>
+                  <h2 className="text-xl font-bold text-white">SOAP Note Preview</h2>
+                  <p className="mt-1 text-sm text-slate-400">Clinical summary prepared from the approved consultation.</p>
                 </div>
-                <div className="rounded-full bg-primary/10 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-primary">
+                <div className="rounded-full bg-blue-500/15 border border-blue-500/30 px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-blue-300">
                   Complete Note
                 </div>
               </div>
 
               <div className="mt-5 grid gap-5">
-                <article className={clsx("overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm ring-1", sectionStyles.subjective.ring)}>
+                <article className={clsx("overflow-hidden rounded-2xl border border-slate-700/60 bg-slate-800/50 shadow-lg ring-1", sectionStyles.subjective.ring)}>
                   <div className={clsx("flex flex-col gap-3 border-b px-5 py-4 sm:flex-row sm:items-center sm:justify-between", sectionStyles.subjective.header)}>
                     <div className="flex items-center gap-3">
                       <span className={clsx("inline-flex h-10 w-10 items-center justify-center rounded-2xl text-base font-semibold", sectionStyles.subjective.badge)}>{sectionStyles.subjective.short}</span>
                       <div>
-                        <h3 className="text-lg font-semibold">{sectionStyles.subjective.title}</h3>
-                        <p className="text-sm text-current/75">Symptoms, history, and patient-reported details</p>
+                        <h3 className="text-lg font-semibold text-white">{sectionStyles.subjective.title}</h3>
+                        <p className="text-sm text-slate-400">Symptoms, history, and patient-reported details</p>
                       </div>
                     </div>
                     <span className={clsx("inline-flex rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide", subjectiveConfidence.className)}>
@@ -299,20 +299,20 @@ export default function ExportPage() {
 
                   <div className="space-y-5 p-5">
                     <div>
-                      <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Chief Complaint</div>
-                      <div className="mt-2 text-sm leading-6 text-slate-700">{soapNote.subjective.chief_complaint}</div>
+                      <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Chief Complaint</div>
+                      <div className="mt-2 text-sm leading-6 text-slate-200">{soapNote.subjective.chief_complaint}</div>
                     </div>
                     <div>
-                      <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">History of Present Illness</div>
-                      <div className="mt-2 space-y-2 text-sm leading-6 text-slate-700">
+                      <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">History of Present Illness</div>
+                      <div className="mt-2 space-y-2 text-sm leading-6 text-slate-200">
                         {formatParagraphs(soapNote.subjective.history_of_present_illness).map((paragraph) => (
                           <p key={paragraph}>{paragraph}</p>
                         ))}
                       </div>
                     </div>
                     <div>
-                      <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Review of Systems</div>
-                      <div className="mt-2 space-y-2 text-sm leading-6 text-slate-700">
+                      <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Review of Systems</div>
+                      <div className="mt-2 space-y-2 text-sm leading-6 text-slate-200">
                         {formatParagraphs(soapNote.subjective.review_of_systems).map((paragraph) => (
                           <p key={paragraph}>{paragraph}</p>
                         ))}
@@ -321,13 +321,13 @@ export default function ExportPage() {
                   </div>
                 </article>
 
-                <article className={clsx("overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm ring-1", sectionStyles.objective.ring)}>
+                <article className={clsx("overflow-hidden rounded-2xl border border-slate-700/60 bg-slate-800/50 shadow-lg ring-1", sectionStyles.objective.ring)}>
                   <div className={clsx("flex flex-col gap-3 border-b px-5 py-4 sm:flex-row sm:items-center sm:justify-between", sectionStyles.objective.header)}>
                     <div className="flex items-center gap-3">
                       <span className={clsx("inline-flex h-10 w-10 items-center justify-center rounded-2xl text-base font-semibold", sectionStyles.objective.badge)}>{sectionStyles.objective.short}</span>
                       <div>
-                        <h3 className="text-lg font-semibold">{sectionStyles.objective.title}</h3>
-                        <p className="text-sm text-current/75">Vitals, observations, and examination findings</p>
+                        <h3 className="text-lg font-semibold text-white">{sectionStyles.objective.title}</h3>
+                        <p className="text-sm text-slate-400">Vitals, observations, and examination findings</p>
                       </div>
                     </div>
                     <span className={clsx("inline-flex rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide", objectiveConfidence.className)}>
@@ -337,24 +337,24 @@ export default function ExportPage() {
 
                   <div className="grid gap-5 p-5 md:grid-cols-2">
                     <div>
-                      <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Vitals</div>
-                      <div className="mt-2 space-y-2 text-sm leading-6 text-slate-700">
+                      <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Vitals</div>
+                      <div className="mt-2 space-y-2 text-sm leading-6 text-slate-200">
                         {formatParagraphs(soapNote.objective.vitals).map((paragraph) => (
                           <p key={paragraph}>{paragraph}</p>
                         ))}
                       </div>
                     </div>
                     <div>
-                      <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Physical Exam</div>
-                      <div className="mt-2 space-y-2 text-sm leading-6 text-slate-700">
+                      <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Physical Exam</div>
+                      <div className="mt-2 space-y-2 text-sm leading-6 text-slate-200">
                         {formatParagraphs(soapNote.objective.physical_exam).map((paragraph) => (
                           <p key={paragraph}>{paragraph}</p>
                         ))}
                       </div>
                     </div>
                     <div className="md:col-span-2">
-                      <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Observations</div>
-                      <div className="mt-2 space-y-2 text-sm leading-6 text-slate-700">
+                      <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Observations</div>
+                      <div className="mt-2 space-y-2 text-sm leading-6 text-slate-200">
                         {formatParagraphs(soapNote.objective.observations).map((paragraph) => (
                           <p key={paragraph}>{paragraph}</p>
                         ))}
@@ -363,13 +363,13 @@ export default function ExportPage() {
                   </div>
                 </article>
 
-                <article className={clsx("overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm ring-1", sectionStyles.assessment.ring)}>
+                <article className={clsx("overflow-hidden rounded-2xl border border-slate-700/60 bg-slate-800/50 shadow-lg ring-1", sectionStyles.assessment.ring)}>
                   <div className={clsx("flex flex-col gap-3 border-b px-5 py-4 sm:flex-row sm:items-center sm:justify-between", sectionStyles.assessment.header)}>
                     <div className="flex items-center gap-3">
                       <span className={clsx("inline-flex h-10 w-10 items-center justify-center rounded-2xl text-base font-semibold", sectionStyles.assessment.badge)}>{sectionStyles.assessment.short}</span>
                       <div>
-                        <h3 className="text-lg font-semibold">{sectionStyles.assessment.title}</h3>
-                        <p className="text-sm text-current/75">Diagnoses, differential, and coding</p>
+                        <h3 className="text-lg font-semibold text-white">{sectionStyles.assessment.title}</h3>
+                        <p className="text-sm text-slate-400">Diagnoses, differential, and coding</p>
                       </div>
                     </div>
                     <span className={clsx("inline-flex rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide", assessmentConfidence.className)}>
@@ -379,25 +379,25 @@ export default function ExportPage() {
 
                   <div className="space-y-5 p-5">
                     <div>
-                      <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Primary Diagnosis</div>
-                      <div className="mt-2 text-sm leading-6 text-slate-700">{soapNote.assessment.diagnosis}</div>
+                      <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Primary Diagnosis</div>
+                      <div className="mt-2 text-sm leading-6 text-slate-200">{soapNote.assessment.diagnosis}</div>
                     </div>
                     <div>
-                      <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Differential Diagnosis</div>
-                      <div className="mt-2 space-y-2 text-sm leading-6 text-slate-700">
+                      <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Differential Diagnosis</div>
+                      <div className="mt-2 space-y-2 text-sm leading-6 text-slate-200">
                         {formatParagraphs(soapNote.assessment.differential).map((paragraph) => (
                           <p key={paragraph}>{paragraph}</p>
                         ))}
                       </div>
                     </div>
                     <div>
-                      <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">ICD-10 Codes</div>
+                      <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">ICD-10 Codes</div>
                       <div className="mt-3 flex flex-wrap gap-2">
                         {soapNote.assessment.icd10_codes.length > 0 ? (
                           soapNote.assessment.icd10_codes.map((code) => (
                             <span
                               key={`${code.code}-${code.description}`}
-                              className="inline-flex rounded-full border border-green-200 bg-green-50 px-3 py-1.5 text-xs font-semibold text-green-800"
+                              className="inline-flex rounded-full border border-blue-500/30 bg-blue-500/15 px-3 py-1.5 text-xs font-semibold text-blue-300"
                             >
                               {code.code} · {code.description}
                             </span>
@@ -410,13 +410,13 @@ export default function ExportPage() {
                   </div>
                 </article>
 
-                <article className={clsx("overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm ring-1", sectionStyles.plan.ring)}>
+                <article className={clsx("overflow-hidden rounded-2xl border border-slate-700/60 bg-slate-800/50 shadow-lg ring-1", sectionStyles.plan.ring)}>
                   <div className={clsx("flex flex-col gap-3 border-b px-5 py-4 sm:flex-row sm:items-center sm:justify-between", sectionStyles.plan.header)}>
                     <div className="flex items-center gap-3">
                       <span className={clsx("inline-flex h-10 w-10 items-center justify-center rounded-2xl text-base font-semibold", sectionStyles.plan.badge)}>{sectionStyles.plan.short}</span>
                       <div>
-                        <h3 className="text-lg font-semibold">{sectionStyles.plan.title}</h3>
-                        <p className="text-sm text-current/75">Medications, tests, and follow-up instructions</p>
+                        <h3 className="text-lg font-semibold text-white">{sectionStyles.plan.title}</h3>
+                        <p className="text-sm text-slate-400">Medications, tests, and follow-up instructions</p>
                       </div>
                     </div>
                     <span className={clsx("inline-flex rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide", planConfidence.className)}>
@@ -426,11 +426,11 @@ export default function ExportPage() {
 
                   <div className="space-y-5 p-5">
                     <div>
-                      <div className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Medications</div>
-                      <div className="overflow-hidden rounded-2xl border border-slate-200">
+                      <div className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-400">Medications</div>
+                      <div className="overflow-hidden rounded-xl border border-slate-700">
                         <div className="overflow-x-auto">
-                          <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
-                            <thead className="bg-slate-50 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                          <table className="min-w-full divide-y divide-slate-700 text-left text-sm">
+                            <thead className="bg-slate-800 text-xs font-semibold uppercase tracking-wide text-slate-300">
                               <tr>
                                 <th className="px-4 py-3">Drug</th>
                                 <th className="px-4 py-3">Dose</th>
@@ -439,11 +439,11 @@ export default function ExportPage() {
                                 <th className="px-4 py-3">Duration</th>
                               </tr>
                             </thead>
-                            <tbody className="divide-y divide-slate-100 bg-white text-slate-700">
+                            <tbody className="divide-y divide-slate-700/60 bg-slate-900/40 text-slate-300">
                               {soapNote.plan.medications.length > 0 ? (
                                 soapNote.plan.medications.map((medication, index) => (
                                   <tr key={`${medication.drug_name}-${index}`}>
-                                    <td className="px-4 py-3 font-medium text-slate-900">{medication.drug_name}</td>
+                                    <td className="px-4 py-3 font-medium text-white">{medication.drug_name}</td>
                                     <td className="px-4 py-3">{medication.dose}</td>
                                     <td className="px-4 py-3">{medication.route}</td>
                                     <td className="px-4 py-3">{medication.frequency}</td>
@@ -465,16 +465,16 @@ export default function ExportPage() {
 
                     <div className="grid gap-5 md:grid-cols-2">
                       <div>
-                        <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Tests Ordered</div>
-                        <div className="mt-2 space-y-2 text-sm leading-6 text-slate-700">
+                        <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Tests Ordered</div>
+                        <div className="mt-2 space-y-2 text-sm leading-6 text-slate-200">
                           {formatParagraphs(soapNote.plan.tests_ordered).map((paragraph) => (
                             <p key={paragraph}>{paragraph}</p>
                           ))}
                         </div>
                       </div>
                       <div>
-                        <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Follow Up</div>
-                        <div className="mt-2 space-y-2 text-sm leading-6 text-slate-700">
+                        <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">Follow Up</div>
+                        <div className="mt-2 space-y-2 text-sm leading-6 text-slate-200">
                           {formatParagraphs(soapNote.plan.follow_up).map((paragraph) => (
                             <p key={paragraph}>{paragraph}</p>
                           ))}
@@ -488,53 +488,53 @@ export default function ExportPage() {
           </div>
 
           <aside className="space-y-5 lg:sticky lg:top-24">
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="rounded-3xl border border-slate-700/60 bg-slate-900/70 p-6 shadow-xl backdrop-blur-sm">
               <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-600/20 text-blue-400">
                   <UserRound className="h-5 w-5" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold text-slate-900">Patient Info Summary</h2>
-                  <p className="text-sm text-slate-500">Export metadata captured from the current session</p>
+                  <h2 className="text-lg font-semibold text-white">Patient Info Summary</h2>
+                  <p className="text-sm text-slate-400">Export metadata captured from the current session</p>
                 </div>
               </div>
 
               <dl className="mt-5 space-y-4 text-sm">
-                <div className="flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
-                  <dt className="text-slate-500">Patient name</dt>
-                  <dd className="text-right font-semibold text-slate-900">{activePatient.name}</dd>
+                <div className="flex items-start justify-between gap-4 border-b border-slate-800 pb-4">
+                  <dt className="text-slate-400">Patient name</dt>
+                  <dd className="text-right font-semibold text-white">{activePatient.name}</dd>
                 </div>
-                <div className="flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
-                  <dt className="text-slate-500">Age</dt>
-                  <dd className="text-right font-semibold text-slate-900">{activePatient.age}</dd>
+                <div className="flex items-start justify-between gap-4 border-b border-slate-800 pb-4">
+                  <dt className="text-slate-400">Age</dt>
+                  <dd className="text-right font-semibold text-white">{activePatient.age}</dd>
                 </div>
-                <div className="flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
-                  <dt className="text-slate-500">Gender</dt>
-                  <dd className="text-right font-semibold text-slate-900">{activePatient.gender}</dd>
+                <div className="flex items-start justify-between gap-4 border-b border-slate-800 pb-4">
+                  <dt className="text-slate-400">Gender</dt>
+                  <dd className="text-right font-semibold text-white">{activePatient.gender}</dd>
                 </div>
-                <div className="flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
-                  <dt className="text-slate-500">Doctor name</dt>
-                  <dd className="text-right font-semibold text-slate-900">{doctorName}</dd>
+                <div className="flex items-start justify-between gap-4 border-b border-slate-800 pb-4">
+                  <dt className="text-slate-400">Doctor name</dt>
+                  <dd className="text-right font-semibold text-white">{doctorName}</dd>
                 </div>
-                <div className="flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
-                  <dt className="text-slate-500">Consultation date</dt>
-                  <dd className="text-right font-semibold text-slate-900">{formatLongDate(today)}</dd>
+                <div className="flex items-start justify-between gap-4 border-b border-slate-800 pb-4">
+                  <dt className="text-slate-400">Consultation date</dt>
+                  <dd className="text-right font-semibold text-white">{formatLongDate(today)}</dd>
                 </div>
                 <div className="flex items-start justify-between gap-4">
-                  <dt className="text-slate-500">Transcript word count</dt>
-                  <dd className="text-right font-semibold text-slate-900">{countWords(transcript)} words</dd>
+                  <dt className="text-slate-400">Transcript word count</dt>
+                  <dd className="text-right font-semibold text-white">{countWords(transcript)} words</dd>
                 </div>
               </dl>
             </div>
 
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="rounded-3xl border border-slate-700/60 bg-slate-900/70 p-6 shadow-xl backdrop-blur-sm">
               <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-600/20 text-blue-400">
                   <Download className="h-5 w-5" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold text-slate-900">Export as PDF</h2>
-                  <p className="text-sm text-slate-500">Clinical document ready for printing and sharing</p>
+                  <h2 className="text-lg font-semibold text-white">Export as PDF</h2>
+                  <p className="text-sm text-slate-400">Clinical document ready for printing and sharing</p>
                 </div>
               </div>
 
@@ -542,7 +542,7 @@ export default function ExportPage() {
                 type="button"
                 onClick={handlePdfExport}
                 disabled={loadingExport !== null}
-                className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-5 py-4 text-sm font-semibold text-white transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-slate-300"
+                className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-blue-600 hover:bg-blue-500 px-5 py-4 text-sm font-semibold text-white transition shadow-lg shadow-blue-600/25 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {loadingExport === "pdf" ? (
                   <>
@@ -558,25 +558,25 @@ export default function ExportPage() {
               </button>
 
               {pdfError ? (
-                <div className="mt-3 flex items-start gap-2 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                <div className="mt-3 flex items-start gap-2 rounded-2xl border border-rose-500/25 bg-rose-500/10 px-4 py-3 text-sm text-rose-300">
                   <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                   <span>{pdfError}</span>
                 </div>
               ) : null}
 
-              <p className="mt-4 text-sm leading-6 text-slate-500">
+              <p className="mt-4 text-xs leading-5 text-slate-400">
                 Professional medical letterhead with prescription table
               </p>
             </div>
 
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="rounded-3xl border border-slate-700/60 bg-slate-900/70 p-6 shadow-xl backdrop-blur-sm">
               <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-600/20 text-emerald-400">
                   <FileJson className="h-5 w-5" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold text-slate-900">Export as FHIR R4</h2>
-                  <p className="text-sm text-slate-500">Structured JSON for interoperable health records</p>
+                  <h2 className="text-lg font-semibold text-white">Export as FHIR R4</h2>
+                  <p className="text-sm text-slate-400">Structured JSON for interoperable health records</p>
                 </div>
               </div>
 
@@ -584,7 +584,7 @@ export default function ExportPage() {
                 type="button"
                 onClick={handleFhirExport}
                 disabled={loadingExport !== null}
-                className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-primary px-5 py-4 text-sm font-semibold text-white transition hover:bg-primary/90 disabled:cursor-not-allowed disabled:bg-slate-300"
+                className="mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-600 hover:bg-emerald-500 px-5 py-4 text-sm font-semibold text-white transition shadow-lg shadow-emerald-600/25 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {loadingExport === "fhir" ? (
                   <>
@@ -600,25 +600,25 @@ export default function ExportPage() {
               </button>
 
               {fhirError ? (
-                <div className="mt-3 flex items-start gap-2 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                <div className="mt-3 flex items-start gap-2 rounded-2xl border border-rose-500/25 bg-rose-500/10 px-4 py-3 text-sm text-rose-300">
                   <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                   <span>{fhirError}</span>
                 </div>
               ) : null}
 
-              <p className="mt-4 text-sm leading-6 text-slate-500">
+              <p className="mt-4 text-xs leading-5 text-slate-400">
                 ABDM compliant FHIR R4 Composition resource
               </p>
             </div>
 
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div className="rounded-3xl border border-slate-700/60 bg-slate-900/70 p-6 shadow-xl backdrop-blur-sm">
               <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-600/20 text-blue-400">
                   <RefreshCcw className="h-5 w-5" />
                 </div>
                 <div>
-                  <h2 className="text-lg font-semibold text-slate-900">Actions</h2>
-                  <p className="text-sm text-slate-500">Move to the next workflow step</p>
+                  <h2 className="text-lg font-semibold text-white">Actions</h2>
+                  <p className="text-sm text-slate-400">Move to the next workflow step</p>
                 </div>
               </div>
 
@@ -626,38 +626,24 @@ export default function ExportPage() {
                 <button
                   type="button"
                   onClick={() => router.push("/consultation")}
-                  className="inline-flex w-full items-center justify-center rounded-2xl bg-primary px-5 py-3 text-sm font-semibold text-white transition hover:bg-primary/90"
+                  className="inline-flex w-full items-center justify-center rounded-xl bg-blue-600 hover:bg-blue-500 px-5 py-3 text-sm font-semibold text-white transition shadow-lg shadow-blue-600/20"
                 >
                   Start New Consultation
                 </button>
                 <button
                   type="button"
-                  onClick={() => router.push("/records")}
-                  className="inline-flex w-full items-center justify-center rounded-2xl border border-primary/20 bg-primary/5 px-5 py-3 text-sm font-semibold text-primary transition hover:bg-primary/10"
+                  onClick={() => router.push("/documents")}
+                  className="inline-flex w-full items-center justify-center rounded-xl border border-slate-700 bg-slate-800 hover:bg-slate-700 px-5 py-3 text-sm font-semibold text-slate-200 transition"
                 >
                   View Patient Records
                 </button>
                 <button
                   type="button"
-                  onClick={() => router.push("/analytics")}
-                  className="inline-flex w-full items-center justify-center rounded-2xl border border-primary/20 bg-primary/5 px-5 py-3 text-sm font-semibold text-primary transition hover:bg-primary/10"
+                  onClick={() => router.push("/dashboard")}
+                  className="inline-flex w-full items-center justify-center rounded-xl border border-slate-700 bg-slate-800 hover:bg-slate-700 px-5 py-3 text-sm font-semibold text-slate-200 transition"
                 >
-                  Go to Analytics
+                  Go to Dashboard
                 </button>
-              </div>
-            </div>
-
-            <div className="rounded-3xl border border-primary/10 bg-primary/[0.03] p-5 text-sm leading-6 text-slate-600 shadow-sm">
-              <div className="flex items-start gap-3">
-                <div className="mt-0.5 flex h-9 w-9 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                  <AlertCircle className="h-4 w-4" />
-                </div>
-                <div>
-                  <div className="font-semibold text-slate-900">Export readiness</div>
-                  <p className="mt-1">
-                    Review badges highlight sections that may need clinician verification before sharing the note externally.
-                  </p>
-                </div>
               </div>
             </div>
           </aside>

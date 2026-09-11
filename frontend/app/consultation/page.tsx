@@ -99,7 +99,7 @@ export default function ConsultationPage() {
   const [showSuccessToast, setShowSuccessToast] = useState(false);
 
   useEffect(() => {
-    document.title = "New Consultation — Aushadh";
+    document.title = "AI Medical Scribe — MedBridge";
   }, []);
 
   // ── Search patients ──
@@ -312,26 +312,26 @@ export default function ConsultationPage() {
   // ═══════════════════════════════════════
   const renderStep1 = () => (
     <div className="max-w-xl mx-auto">
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
-        <h2 className="text-2xl font-bold text-gray-900 mb-1">Select Patient</h2>
-        <p className="text-gray-500 text-sm mb-6">
+      <div className="bg-slate-900/70 border border-slate-700/60 rounded-2xl shadow-2xl p-6 sm:p-8 backdrop-blur-sm">
+        <h2 className="text-2xl font-bold text-white mb-1">Select Patient</h2>
+        <p className="text-slate-400 text-sm mb-6">
           Search for an existing patient or register a new one
         </p>
 
         {/* Search bar */}
         <div className="relative mb-4">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-500" />
           <input
             type="text"
             placeholder="Search patient by name or phone..."
-            className="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary text-sm"
+            className="w-full pl-11 pr-4 py-3 bg-slate-800/90 border border-slate-700 rounded-xl text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 text-sm transition-colors"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
 
           {/* Search results dropdown */}
           {searchResults.length > 0 && (
-            <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto">
+            <div className="absolute z-10 w-full mt-1.5 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl max-h-60 overflow-y-auto">
               {searchResults.map((p) => {
                 const lastVisit = p.consultations.length > 0
                   ? new Date(p.consultations[p.consultations.length - 1].date).toLocaleDateString()
@@ -340,16 +340,16 @@ export default function ConsultationPage() {
                   <button
                     key={p.id}
                     onClick={() => selectPatient(p)}
-                    className="w-full text-left px-4 py-3 hover:bg-gray-50 flex items-center justify-between border-b last:border-0"
+                    className="w-full text-left px-4 py-3 hover:bg-slate-700/70 flex items-center justify-between border-b border-slate-700/50 last:border-0 transition-colors"
                   >
                     <div>
-                      <div className="font-medium text-gray-900">{p.name}</div>
-                      <div className="text-xs text-gray-500">
+                      <div className="font-medium text-white">{p.name}</div>
+                      <div className="text-xs text-slate-400">
                         {p.age} yrs • {p.phone || "No phone"}
                       </div>
                     </div>
-                    <div className="text-xs text-gray-400 flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
+                    <div className="text-xs text-slate-400 flex items-center gap-1">
+                      <Clock className="h-3 w-3 text-blue-400" />
                       {lastVisit}
                     </div>
                   </button>
@@ -361,30 +361,31 @@ export default function ConsultationPage() {
 
         {/* Selected patient card */}
         {currentPatient && (
-          <div className="border border-primary/20 bg-primary/5 rounded-xl p-5 mb-6 animate-fade-in">
+          <div className="border border-blue-500/30 bg-blue-600/10 rounded-xl p-5 mb-6 animate-fade-in">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <User className="h-5 w-5 text-primary" />
+                <div className="h-10 w-10 rounded-xl bg-blue-600/20 flex items-center justify-center">
+                  <User className="h-5 w-5 text-blue-400" />
                 </div>
                 <div>
-                  <div className="font-semibold text-gray-900">{currentPatient.name}</div>
-                  <div className="text-xs text-gray-500">
-                    {currentPatient.age} yrs • {currentPatient.gender}
+                  <div className="font-semibold text-white">{currentPatient.name}</div>
+                  <div className="text-xs text-slate-400">
+                    {currentPatient.age} yrs • {currentPatient.gender || currentPatient.sex || "N/A"}
                   </div>
                 </div>
               </div>
               <button
                 onClick={() => setCurrentPatient(null)}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-slate-400 hover:text-white transition-colors"
+                title="Deselect patient"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
             {currentPatient.phone && (
-              <div className="flex items-center gap-2 text-xs text-gray-500 mb-3">
-                <Phone className="h-3 w-3" />
+              <div className="flex items-center gap-2 text-xs text-slate-400 mb-3">
+                <Phone className="h-3.5 w-3.5 text-slate-500" />
                 {currentPatient.phone}
               </div>
             )}
@@ -392,14 +393,14 @@ export default function ConsultationPage() {
             {/* Badges */}
             <div className="space-y-2">
               {currentPatient.allergies && (
-                <div className="flex flex-wrap gap-1.5">
-                  <span className="text-xs text-danger font-medium flex items-center gap-1">
-                    <AlertTriangle className="h-3 w-3" /> Allergies:
+                <div className="flex flex-wrap gap-1.5 items-center">
+                  <span className="text-xs text-rose-400 font-medium flex items-center gap-1">
+                    <AlertTriangle className="h-3 w-3 text-rose-400" /> Allergies:
                   </span>
                   {(Array.isArray(currentPatient.allergies) ? currentPatient.allergies : (currentPatient.allergies as unknown as string).split(",")).map((a) => (
                     <span
                       key={a}
-                      className="text-xs bg-danger/10 text-danger px-2 py-0.5 rounded-full"
+                      className="text-xs bg-rose-500/15 border border-rose-500/30 text-rose-300 px-2.5 py-0.5 rounded-full"
                     >
                       {a.trim()}
                     </span>
@@ -407,9 +408,9 @@ export default function ConsultationPage() {
                 </div>
               )}
               {currentPatient.chronic_conditions && (
-                <div className="flex flex-wrap gap-1.5">
-                  <span className="text-xs text-warning font-medium flex items-center gap-1">
-                    <Heart className="h-3 w-3" /> Chronic:
+                <div className="flex flex-wrap gap-1.5 items-center">
+                  <span className="text-xs text-amber-400 font-medium flex items-center gap-1">
+                    <Heart className="h-3 w-3 text-amber-400" /> Chronic:
                   </span>
                   {currentPatient.chronic_conditions
                     .split(",")
@@ -417,7 +418,7 @@ export default function ConsultationPage() {
                     .map((c) => (
                       <span
                         key={c}
-                        className="text-xs bg-warning/10 text-warning px-2 py-0.5 rounded-full"
+                        className="text-xs bg-amber-500/15 border border-amber-500/30 text-amber-300 px-2.5 py-0.5 rounded-full"
                       >
                         {c.trim()}
                       </span>
@@ -426,13 +427,13 @@ export default function ConsultationPage() {
               )}
 
               {/* Last 2 consultations */}
-              {currentPatient.consultations.length > 0 && (
-                <div className="mt-3 pt-3 border-t border-gray-200">
-                  <div className="text-xs font-medium text-gray-500 mb-2">Recent Visits</div>
+              {currentPatient.consultations && currentPatient.consultations.length > 0 && (
+                <div className="mt-3 pt-3 border-t border-slate-700/60">
+                  <div className="text-xs font-medium text-slate-400 mb-2">Recent Visits</div>
                   {currentPatient.consultations.slice(-2).map((c) => (
-                    <div key={c.id} className="text-xs text-gray-500 mb-1">
+                    <div key={c.id} className="text-xs text-slate-400 mb-1">
                       {new Date(c.date).toLocaleDateString()} —{" "}
-                      {c.soap_note?.assessment?.diagnosis || "No diagnosis"}
+                      <span className="text-slate-300">{c.soap_note?.assessment?.diagnosis || "No diagnosis"}</span>
                     </div>
                   ))}
                 </div>
@@ -441,7 +442,7 @@ export default function ConsultationPage() {
 
             <button
               onClick={() => setStep(2)}
-              className="mt-4 w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white font-semibold py-3 rounded-xl transition-colors"
+              className="mt-4 w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 rounded-xl transition-all shadow-lg shadow-blue-600/25"
             >
               Start Consultation <ChevronRight className="h-5 w-5" />
             </button>
@@ -450,10 +451,10 @@ export default function ConsultationPage() {
 
         {/* New patient link / form */}
         {!currentPatient && (
-          <div className="mt-6 pt-6 border-t border-gray-100">
+          <div className="mt-6 pt-6 border-t border-slate-800">
             <button
               onClick={() => setShowNewForm(!showNewForm)}
-              className="text-sm text-primary font-medium hover:underline"
+              className="text-sm text-blue-400 font-medium hover:text-blue-300 transition-colors"
             >
               {showNewForm ? "Cancel" : "New Patient? Register here →"}
             </button>
@@ -463,7 +464,7 @@ export default function ConsultationPage() {
                 <input
                   type="text"
                   placeholder="Patient Name *"
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  className="w-full px-4 py-2.5 bg-slate-800/90 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
                   value={newPatient.name}
                   onChange={(e) => setNewPatient({ ...newPatient, name: e.target.value })}
                 />
@@ -471,12 +472,12 @@ export default function ConsultationPage() {
                   <input
                     type="text"
                     placeholder="Age *"
-                    className="px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    className="px-4 py-2.5 bg-slate-800/90 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
                     value={newPatient.age}
                     onChange={(e) => setNewPatient({ ...newPatient, age: e.target.value })}
                   />
                   <select
-                    className="px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 bg-white"
+                    className="px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-blue-500"
                     value={newPatient.gender}
                     onChange={(e) => setNewPatient({ ...newPatient, gender: e.target.value })}
                   >
@@ -487,7 +488,7 @@ export default function ConsultationPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <select
-                    className="px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 bg-white"
+                    className="px-4 py-2.5 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white focus:outline-none focus:border-blue-500"
                     value={bloodGroup}
                     onChange={(e) => setBloodGroup(e.target.value)}
                   >
@@ -498,7 +499,7 @@ export default function ConsultationPage() {
                   <input
                     type="text"
                     placeholder="Phone Number"
-                    className="px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                    className="px-4 py-2.5 bg-slate-800/90 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
                     value={newPatient.phone}
                     onChange={(e) => setNewPatient({ ...newPatient, phone: e.target.value })}
                   />
@@ -506,14 +507,14 @@ export default function ConsultationPage() {
                 <input
                   type="text"
                   placeholder="Allergies (comma separated)"
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  className="w-full px-4 py-2.5 bg-slate-800/90 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
                   value={newPatient.allergies}
                   onChange={(e) => setNewPatient({ ...newPatient, allergies: e.target.value })}
                 />
                 <input
                   type="text"
                   placeholder="Chronic Conditions (comma separated)"
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                  className="w-full px-4 py-2.5 bg-slate-800/90 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500"
                   value={newPatient.chronic_conditions}
                   onChange={(e) =>
                     setNewPatient({ ...newPatient, chronic_conditions: e.target.value })
@@ -522,7 +523,7 @@ export default function ConsultationPage() {
                 <button
                   onClick={handleCreatePatient}
                   disabled={!newPatient.name.trim() || !newPatient.age.trim()}
-                  className="w-full flex items-center justify-center gap-2 bg-accent hover:bg-accent/90 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl transition-colors"
+                  className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl transition-all shadow-lg shadow-blue-600/25"
                 >
                   Create Patient & Continue <ChevronRight className="h-5 w-5" />
                 </button>
@@ -541,37 +542,42 @@ export default function ConsultationPage() {
     <div className="max-w-lg mx-auto text-center">
       {/* Patient info box */}
       {currentPatient && (
-        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 mb-8">
+        <div className="bg-slate-900/70 border border-slate-700/60 rounded-2xl shadow-xl p-4 mb-8 text-left">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <User className="h-4 w-4 text-primary" />
-              <span className="font-medium text-gray-900">{currentPatient.name}</span>
-              <span className="text-xs text-gray-500">
-                {currentPatient.age} yrs • {currentPatient.gender}
-              </span>
+            <div className="flex items-center gap-3">
+              <div className="h-9 w-9 rounded-xl bg-blue-600/20 flex items-center justify-center">
+                <User className="h-4 w-4 text-blue-400" />
+              </div>
+              <div>
+                <span className="font-semibold text-white block">{currentPatient.name}</span>
+                <span className="text-xs text-slate-400">
+                  {currentPatient.age} yrs • {currentPatient.gender || currentPatient.sex || "N/A"}
+                </span>
+              </div>
             </div>
             {currentPatient.allergies && (
-              <span className="text-xs bg-danger/10 text-danger px-2 py-1 rounded-full flex items-center gap-1">
-                <AlertTriangle className="h-3 w-3" />
+              <span className="text-xs bg-rose-500/15 border border-rose-500/30 text-rose-300 px-2.5 py-1 rounded-full flex items-center gap-1">
+                <AlertTriangle className="h-3 w-3 text-rose-400" />
                 {Array.isArray(currentPatient.allergies)
                   ? currentPatient.allergies.join(", ")
                   : currentPatient.allergies}
               </span>
             )}
           </div>
-          <div className="text-xs text-gray-400 mt-2">
-            Recording tip: Place device between doctor and patient
+          <div className="text-xs text-slate-500 mt-2.5 pt-2 border-t border-slate-800">
+            Recording tip: Place microphone between clinician and patient
           </div>
         </div>
       )}
 
       {/* Transcribing overlay */}
       {isTranscribing && (
-        <div className="fixed inset-0 z-50 bg-white/90 flex flex-col items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-700"></div>
-          <div className="text-lg font-semibold text-gray-900 mt-4">
-            Transcribing your consultation... please wait
+        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex flex-col items-center justify-center">
+          <div className="animate-spin rounded-full h-10 w-10 border-2 border-blue-500 border-t-transparent"></div>
+          <div className="text-lg font-semibold text-white mt-4">
+            Transcribing consultation with Whisper...
           </div>
+          <p className="text-xs text-slate-400 mt-1">Processing audio stream</p>
         </div>
       )}
 
@@ -580,26 +586,26 @@ export default function ConsultationPage() {
         <button
           onClick={isRecording ? undefined : startRecording}
           className={clsx(
-            "h-32 w-32 rounded-full mx-auto flex items-center justify-center transition-all",
+            "h-32 w-32 rounded-full mx-auto flex items-center justify-center transition-all cursor-pointer shadow-2xl",
             isRecording
-              ? "bg-danger/10 animate-pulse-ring"
-              : "bg-gray-100 hover:bg-gray-200 cursor-pointer"
+              ? "bg-rose-500/20 text-rose-400 border-2 border-rose-500 shadow-rose-500/30 animate-pulse"
+              : "bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white border border-slate-700"
           )}
         >
           {isRecording ? (
-            <Mic className="h-14 w-14 text-danger" />
+            <Mic className="h-14 w-14 text-rose-400 animate-pulse" />
           ) : (
-            <Mic className="h-14 w-14 text-gray-400" />
+            <Mic className="h-14 w-14 text-slate-400" />
           )}
         </button>
-        <div className="mt-4 text-sm font-medium text-gray-500">
+        <div className="mt-4 text-sm font-medium">
           {isRecording ? (
-            <span className="flex items-center justify-center gap-2 text-danger">
-              <span className="h-2 w-2 rounded-full bg-danger animate-pulse" />
-              Recording...
+            <span className="flex items-center justify-center gap-2 text-rose-400">
+              <span className="h-2 w-2 rounded-full bg-rose-500 animate-pulse" />
+              Recording active...
             </span>
           ) : (
-            "Tap to Start Recording"
+            <span className="text-slate-400">Tap to Start Recording</span>
           )}
         </div>
       </div>
@@ -612,8 +618,8 @@ export default function ConsultationPage() {
             className={clsx(
               "w-1.5 rounded-full transition-all",
               isRecording
-                ? "bg-accent animate-wave"
-                : "bg-gray-200 h-3"
+                ? "bg-rose-500 animate-wave"
+                : "bg-slate-700 h-3"
             )}
             style={
               isRecording
@@ -631,7 +637,7 @@ export default function ConsultationPage() {
       <div
         className={clsx(
           "text-3xl font-mono font-bold mb-6",
-          isRecording ? "text-danger" : "text-gray-300"
+          isRecording ? "text-rose-400" : "text-slate-600"
         )}
       >
         {formatTime(timer)}
@@ -641,7 +647,7 @@ export default function ConsultationPage() {
       {isRecording && (
         <button
           onClick={stopRecording}
-          className="inline-flex items-center gap-2 bg-danger hover:bg-danger/90 text-white font-semibold px-8 py-3 rounded-xl transition-colors animate-fade-in"
+          className="inline-flex items-center gap-2 bg-rose-600 hover:bg-rose-500 text-white font-semibold px-8 py-3 rounded-xl transition-all shadow-lg shadow-rose-600/30 animate-fade-in"
         >
           <Square className="h-4 w-4 fill-current" />
           Stop & Transcribe
@@ -650,11 +656,11 @@ export default function ConsultationPage() {
 
       {/* Error */}
       {recordError && (
-        <div className="mt-6 bg-danger/10 border border-danger/20 text-danger text-sm p-4 rounded-xl flex items-start justify-between gap-3">
+        <div className="mt-6 bg-rose-500/10 border border-rose-500/25 text-rose-300 text-sm p-4 rounded-xl flex items-start justify-between gap-3 text-left">
           <span>{recordError}</span>
           <button
             onClick={() => setRecordError("")}
-            className="text-danger/80 hover:text-danger"
+            className="text-rose-400 hover:text-rose-200"
           >
             <X className="h-4 w-4" />
           </button>
@@ -662,11 +668,11 @@ export default function ConsultationPage() {
       )}
 
       {recordWarning && (
-        <div className="mt-4 bg-warning/10 border border-warning/20 text-warning text-sm p-4 rounded-xl flex items-start justify-between gap-3">
+        <div className="mt-4 bg-amber-500/10 border border-amber-500/25 text-amber-300 text-sm p-4 rounded-xl flex items-start justify-between gap-3 text-left">
           <span>{recordWarning}</span>
           <button
             onClick={() => setRecordWarning("")}
-            className="text-warning/80 hover:text-warning"
+            className="text-amber-400 hover:text-amber-200"
           >
             <X className="h-4 w-4" />
           </button>
@@ -676,7 +682,7 @@ export default function ConsultationPage() {
       {/* Back */}
       <button
         onClick={() => setStep(1)}
-        className="mt-8 text-sm text-gray-400 hover:text-gray-600 flex items-center gap-1 mx-auto"
+        className="mt-8 text-sm text-slate-400 hover:text-white flex items-center gap-1.5 mx-auto transition-colors"
       >
         <ArrowLeft className="h-4 w-4" /> Back to Patient Selection
       </button>
@@ -690,56 +696,57 @@ export default function ConsultationPage() {
     <div className="max-w-3xl mx-auto">
       {/* Generating overlay */}
       {isGenerating && (
-        <div className="fixed inset-0 z-50 bg-white/95 flex flex-col items-center justify-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-700"></div>
-          <div className="text-xl font-semibold text-gray-900">
+        <div className="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex flex-col items-center justify-center">
+          <div className="animate-spin rounded-full h-10 w-10 border-2 border-blue-500 border-t-transparent"></div>
+          <div className="text-xl font-semibold text-white mt-4">
             {isCheckingDrugSafety
-              ? "Checking drug safety..."
-              : "AI is analyzing your consultation..."}
+              ? "Checking drug safety interactions..."
+              : "Google Gemini is synthesizing clinical SOAP note..."}
           </div>
+          <p className="text-xs text-slate-400 mt-1">Powered exclusively by Google Gemini 3.8 Flash</p>
         </div>
       )}
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sm:p-8">
+      <div className="bg-slate-900/70 border border-slate-700/60 rounded-2xl shadow-2xl p-6 sm:p-8 backdrop-blur-sm">
         <div className="flex items-center justify-between mb-1">
-          <h2 className="text-2xl font-bold text-gray-900">Review Transcript</h2>
+          <h2 className="text-2xl font-bold text-white">Review Transcript</h2>
           {language && (
-            <span className="text-xs bg-primary/10 text-primary px-3 py-1 rounded-full font-medium">
+            <span className="text-xs bg-blue-500/15 border border-blue-500/30 text-blue-300 px-3 py-1 rounded-full font-semibold">
               {language.toUpperCase()}
             </span>
           )}
         </div>
-        <p className="text-sm text-gray-500 mb-1">
-          Edit any errors before generating SOAP note
+        <p className="text-sm text-slate-400 mb-1">
+          Review or edit transcript before generating the structured clinical SOAP note
         </p>
-        <p className="text-xs text-gray-400 mb-6">{wordCount} words</p>
+        <p className="text-xs text-slate-500 mb-6">{wordCount} words detected</p>
 
         <textarea
-          className="w-full min-h-[300px] p-4 border border-gray-200 rounded-xl text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary resize-y"
+          className="w-full min-h-[300px] p-4 bg-slate-800/90 border border-slate-700 rounded-xl text-sm leading-relaxed text-slate-100 placeholder-slate-500 focus:outline-none focus:border-blue-500 resize-y transition-colors"
           value={editedTranscript}
           onChange={(e) => setEditedTranscript(e.target.value)}
         />
 
         {/* Doctor name */}
         <div className="mt-6">
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Your Name (Dr.)
+          <label className="block text-sm font-medium text-slate-300 mb-1.5">
+            Attending Clinician (Dr.)
           </label>
           <input
             type="text"
-            placeholder="e.g. Dr. Sharma"
-            className="w-full px-4 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+            placeholder="e.g. Dr. Zainab"
+            className="w-full px-4 py-2.5 bg-slate-800/90 border border-slate-700 rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-blue-500 transition-colors"
             value={doctorName}
             onChange={(e) => setDoctorName(e.target.value)}
           />
         </div>
 
         {generateError && (
-          <div className="mt-4 bg-danger/10 border border-danger/20 text-danger text-sm p-4 rounded-xl flex items-start justify-between gap-3">
+          <div className="mt-4 bg-rose-500/10 border border-rose-500/25 text-rose-300 text-sm p-4 rounded-xl flex items-start justify-between gap-3">
             <span>{generateError}</span>
             <button
               onClick={() => setGenerateError("")}
-              className="text-danger/80 hover:text-danger"
+              className="text-rose-400 hover:text-rose-200"
             >
               <X className="h-4 w-4" />
             </button>
@@ -754,14 +761,14 @@ export default function ConsultationPage() {
               setEditedTranscript("");
               setStep(2);
             }}
-            className="px-6 py-3 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+            className="px-6 py-3 border border-slate-700 rounded-xl text-sm font-medium text-slate-300 bg-slate-800 hover:bg-slate-700 transition-colors"
           >
             Re-record
           </button>
           <button
             onClick={handleGenerate}
             disabled={!editedTranscript.trim() || !doctorName.trim() || isGenerating}
-            className="flex-1 flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl transition-colors"
+            className="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl transition-all shadow-lg shadow-blue-600/25"
           >
             Generate SOAP Note <ChevronRight className="h-5 w-5" />
           </button>
@@ -791,38 +798,38 @@ export default function ConsultationPage() {
     return (
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 mb-1">Review SOAP Note</h2>
-          <p className="text-sm text-gray-500 mb-3">
+        <div className="bg-slate-900/70 border border-slate-700/60 rounded-2xl shadow-xl p-6 mb-6 backdrop-blur-sm">
+          <h2 className="text-2xl font-bold text-white mb-1">Review SOAP Note</h2>
+          <p className="text-sm text-slate-400 mb-3">
             Review carefully before approving — AI assistance requires physician verification
           </p>
-          <div className="flex items-center gap-4 text-xs text-gray-500">
+          <div className="flex items-center gap-4 text-xs text-slate-400">
             <span>
-              <strong>Patient:</strong> {currentPatient?.name}
+              <strong className="text-slate-300">Patient:</strong> {currentPatient?.name}
             </span>
             <span>
-              <strong>Doctor:</strong> {doctorName}
+              <strong className="text-slate-300">Doctor:</strong> {doctorName}
             </span>
           </div>
         </div>
 
         {/* Drug interaction warning */}
         {interactions.length > 0 && (
-          <div className="bg-danger/5 border border-danger/20 rounded-2xl p-5 mb-6 animate-fade-in">
-            <div className="flex items-center gap-2 text-danger font-semibold mb-3">
+          <div className="bg-rose-950/40 border border-rose-500/30 rounded-2xl p-5 mb-6 animate-fade-in text-rose-200">
+            <div className="flex items-center gap-2 text-rose-400 font-semibold mb-3">
               <AlertTriangle className="h-5 w-5" />
               Drug Interaction Detected
             </div>
             {interactions.map((intr, i) => (
-              <div key={i} className="text-sm text-gray-700 mb-2 last:mb-0">
-                <span className="font-medium">{intr.drug1}</span>
+              <div key={i} className="text-sm text-slate-300 mb-2 last:mb-0">
+                <span className="font-semibold text-white">{intr.drug1}</span>
                 {" + "}
-                <span className="font-medium">{intr.drug2}</span>
+                <span className="font-semibold text-white">{intr.drug2}</span>
                 {" → "}
                 <span
                   className={clsx(
-                    "font-semibold",
-                    intr.severity === "HIGH" ? "text-danger" : "text-warning"
+                    "font-bold",
+                    intr.severity === "HIGH" ? "text-rose-400" : "text-amber-400"
                   )}
                 >
                   {intr.severity}
@@ -835,7 +842,7 @@ export default function ConsultationPage() {
         )}
 
         {/* SOAP section cards */}
-        {sections.map(({ key, label, short, icon: SectionIcon }) => {
+        {sections.map(({ key, label, short }) => {
           const section = editedSoap[key];
           const isEditing = editingSection === key;
           const confidence = section.confidence;
@@ -845,25 +852,25 @@ export default function ConsultationPage() {
             <div
               key={key}
               className={clsx(
-                "bg-white rounded-2xl shadow-sm border mb-4 overflow-hidden transition-all",
+                "bg-slate-900/70 rounded-2xl border mb-4 overflow-hidden shadow-xl transition-all",
                 needsReview
-                  ? "border-l-4 border-l-warning border-warning/20"
-                  : "border-gray-100"
+                  ? "border-amber-500/40 border-l-4 border-l-amber-500"
+                  : "border-slate-700/60"
               )}
             >
               {/* Card header */}
-              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-50">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-slate-800/80">
                 <div className="flex items-center gap-3">
-                  <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <span className="text-sm font-bold text-primary">{short}</span>
+                  <div className="h-9 w-9 rounded-xl bg-blue-600/20 flex items-center justify-center">
+                    <span className="text-sm font-bold text-blue-400">{short}</span>
                   </div>
-                  <div className="font-semibold text-gray-900">{label}</div>
+                  <div className="font-semibold text-white">{label}</div>
                   <span
                     className={clsx(
-                      "text-xs px-2.5 py-0.5 rounded-full font-medium",
+                      "text-xs px-2.5 py-0.5 rounded-full font-medium border",
                       confidence === "HIGH"
-                        ? "bg-accent/10 text-accent"
-                        : "bg-warning/10 text-warning"
+                        ? "bg-emerald-500/15 border-emerald-500/30 text-emerald-300"
+                        : "bg-amber-500/15 border-amber-500/30 text-amber-300"
                     )}
                   >
                     {confidence === "HIGH" ? "HIGH CONFIDENCE" : "⚠ REVIEW NEEDED"}
@@ -871,9 +878,10 @@ export default function ConsultationPage() {
                 </div>
                 <button
                   onClick={() => setEditingSection(isEditing ? null : key)}
-                  className="text-gray-400 hover:text-primary transition-colors"
+                  className="text-slate-400 hover:text-blue-400 transition-colors p-1"
+                  title={isEditing ? "Done editing" : "Edit section"}
                 >
-                  {isEditing ? <Check className="h-5 w-5" /> : <Edit3 className="h-4 w-4" />}
+                  {isEditing ? <Check className="h-5 w-5 text-emerald-400" /> : <Edit3 className="h-4 w-4" />}
                 </button>
               </div>
 
@@ -943,18 +951,18 @@ export default function ConsultationPage() {
                     />
                     {/* ICD-10 codes */}
                     <div>
-                      <div className="text-xs font-medium text-gray-500 mb-2">ICD-10 Codes</div>
+                      <div className="text-xs font-medium text-slate-400 mb-2">ICD-10 Codes</div>
                       <div className="flex flex-wrap gap-2">
                         {editedSoap.assessment.icd10_codes.map((c, i) => (
                           <span
                             key={i}
-                            className="text-xs bg-primary/10 text-primary px-3 py-1 rounded-full font-medium"
+                            className="text-xs bg-blue-500/15 border border-blue-500/30 text-blue-300 px-3 py-1 rounded-full font-medium"
                           >
                             {c.code} — {c.description}
                           </span>
                         ))}
                         {editedSoap.assessment.icd10_codes.length === 0 && (
-                          <span className="text-xs text-gray-400">No codes generated</span>
+                          <span className="text-xs text-slate-500">No codes generated</span>
                         )}
                       </div>
                     </div>
@@ -965,19 +973,15 @@ export default function ConsultationPage() {
                   <div className="space-y-4">
                     {/* Medications table */}
                     {editedSoap.plan.medications.length > 0 && (
-                      <div className="overflow-x-auto">
-                        <table className="w-full text-sm">
+                      <div className="overflow-x-auto rounded-xl border border-slate-700/80">
+                        <table className="w-full text-sm text-left">
                           <thead>
-                            <tr className="bg-primary text-white">
-                              <th className="px-3 py-2 text-left font-medium rounded-tl-lg">
-                                Drug
-                              </th>
-                              <th className="px-3 py-2 text-left font-medium">Dose</th>
-                              <th className="px-3 py-2 text-left font-medium">Route</th>
-                              <th className="px-3 py-2 text-left font-medium">Frequency</th>
-                              <th className="px-3 py-2 text-left font-medium rounded-tr-lg">
-                                Duration
-                              </th>
+                            <tr className="bg-slate-800 text-slate-200">
+                              <th className="px-3 py-2.5 font-medium">Drug</th>
+                              <th className="px-3 py-2.5 font-medium">Dose</th>
+                              <th className="px-3 py-2.5 font-medium">Route</th>
+                              <th className="px-3 py-2.5 font-medium">Frequency</th>
+                              <th className="px-3 py-2.5 font-medium">Duration</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -985,15 +989,15 @@ export default function ConsultationPage() {
                               <tr
                                 key={i}
                                 className={clsx(
-                                  "border-b border-gray-100",
-                                  i % 2 === 0 ? "bg-gray-50/50" : "bg-white"
+                                  "border-b border-slate-800 text-slate-300",
+                                  i % 2 === 0 ? "bg-slate-900/40" : "bg-slate-800/30"
                                 )}
                               >
                                 {isEditing ? (
                                   <>
                                     <td className="px-2 py-1.5">
                                       <input
-                                        className="w-full px-2 py-1 border rounded text-xs"
+                                        className="w-full px-2 py-1 bg-slate-800 border border-slate-700 rounded text-white text-xs"
                                         value={med.drug_name}
                                         onChange={(e) => {
                                           const meds = [...editedSoap.plan.medications];
@@ -1007,7 +1011,7 @@ export default function ConsultationPage() {
                                     </td>
                                     <td className="px-2 py-1.5">
                                       <input
-                                        className="w-full px-2 py-1 border rounded text-xs"
+                                        className="w-full px-2 py-1 bg-slate-800 border border-slate-700 rounded text-white text-xs"
                                         value={med.dose}
                                         onChange={(e) => {
                                           const meds = [...editedSoap.plan.medications];
@@ -1021,7 +1025,7 @@ export default function ConsultationPage() {
                                     </td>
                                     <td className="px-2 py-1.5">
                                       <input
-                                        className="w-full px-2 py-1 border rounded text-xs"
+                                        className="w-full px-2 py-1 bg-slate-800 border border-slate-700 rounded text-white text-xs"
                                         value={med.route}
                                         onChange={(e) => {
                                           const meds = [...editedSoap.plan.medications];
@@ -1035,7 +1039,7 @@ export default function ConsultationPage() {
                                     </td>
                                     <td className="px-2 py-1.5">
                                       <input
-                                        className="w-full px-2 py-1 border rounded text-xs"
+                                        className="w-full px-2 py-1 bg-slate-800 border border-slate-700 rounded text-white text-xs"
                                         value={med.frequency}
                                         onChange={(e) => {
                                           const meds = [...editedSoap.plan.medications];
@@ -1049,7 +1053,7 @@ export default function ConsultationPage() {
                                     </td>
                                     <td className="px-2 py-1.5">
                                       <input
-                                        className="w-full px-2 py-1 border rounded text-xs"
+                                        className="w-full px-2 py-1 bg-slate-800 border border-slate-700 rounded text-white text-xs"
                                         value={med.duration}
                                         onChange={(e) => {
                                           const meds = [...editedSoap.plan.medications];
@@ -1064,13 +1068,13 @@ export default function ConsultationPage() {
                                   </>
                                 ) : (
                                   <>
-                                    <td className="px-3 py-2 font-medium text-gray-900">
+                                    <td className="px-3 py-2 font-medium text-white">
                                       {med.drug_name}
                                     </td>
-                                    <td className="px-3 py-2 text-gray-600">{med.dose}</td>
-                                    <td className="px-3 py-2 text-gray-600">{med.route}</td>
-                                    <td className="px-3 py-2 text-gray-600">{med.frequency}</td>
-                                    <td className="px-3 py-2 text-gray-600">{med.duration}</td>
+                                    <td className="px-3 py-2 text-slate-300">{med.dose}</td>
+                                    <td className="px-3 py-2 text-slate-300">{med.route}</td>
+                                    <td className="px-3 py-2 text-slate-300">{med.frequency}</td>
+                                    <td className="px-3 py-2 text-slate-300">{med.duration}</td>
                                   </>
                                 )}
                               </tr>
@@ -1082,10 +1086,10 @@ export default function ConsultationPage() {
 
                     {/* Tests Ordered */}
                     <div>
-                      <div className="text-xs font-medium text-gray-500 mb-2">Tests Ordered</div>
+                      <div className="text-xs font-medium text-slate-400 mb-2">Tests Ordered</div>
                       {isEditing ? (
                         <input
-                          className="w-full px-3 py-2 border rounded-lg text-sm"
+                          className="w-full px-3 py-2 bg-slate-800 border border-slate-700 rounded-xl text-sm text-white"
                           value={editedSoap.plan.tests_ordered}
                           onChange={(e) =>
                             updateSoapField("plan", "tests_ordered", e.target.value)
@@ -1097,13 +1101,13 @@ export default function ConsultationPage() {
                             editedSoap.plan.tests_ordered.split(",").map((t, i) => (
                               <span
                                 key={i}
-                                className="text-xs bg-gray-100 text-gray-700 px-2.5 py-1 rounded-full"
+                                className="text-xs bg-slate-800 border border-slate-700 text-slate-300 px-3 py-1 rounded-full"
                               >
                                 {t.trim()}
                               </span>
                             ))
                           ) : (
-                            <span className="text-xs text-gray-400">None ordered</span>
+                            <span className="text-xs text-slate-500">None ordered</span>
                           )}
                         </div>
                       )}
@@ -1126,16 +1130,16 @@ export default function ConsultationPage() {
         <div className="flex gap-3 mt-6">
           <button
             onClick={() => setStep(3)}
-            className="px-6 py-3 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+            className="px-6 py-3 border border-slate-700 rounded-xl text-sm font-medium text-slate-300 bg-slate-800 hover:bg-slate-700 transition-colors"
           >
             Back to Review
           </button>
           <button
             onClick={handleApprove}
-            className="flex-1 flex items-center justify-center gap-2 bg-accent hover:bg-accent/90 text-white font-semibold py-3.5 rounded-xl transition-colors text-lg"
+            className="flex-1 flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-3.5 rounded-xl transition-all shadow-lg shadow-emerald-600/25 text-lg"
           >
             <Check className="h-5 w-5" />
-            Approve & Save to EHR
+            Approve & Save to Patient Record
           </button>
         </div>
       </div>
@@ -1143,10 +1147,10 @@ export default function ConsultationPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-12">
+    <div className="min-h-screen bg-[#0a0f1e] text-slate-100 pb-16">
       {showSuccessToast && (
-        <div className="fixed top-20 right-4 z-[60] rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm font-medium text-green-700 shadow-lg">
-          ✓ Consultation saved successfully!
+        <div className="fixed top-20 right-4 z-[60] rounded-xl border border-emerald-500/30 bg-emerald-950/90 text-emerald-300 px-4 py-3 text-sm font-medium shadow-2xl backdrop-blur-md flex items-center gap-2 animate-fade-in">
+          ✓ Consultation saved successfully to patient record!
         </div>
       )}
       <div className="max-w-5xl mx-auto px-4 sm:px-6">
@@ -1177,16 +1181,16 @@ function SoapField({
 }) {
   return (
     <div>
-      <div className="text-xs font-medium text-gray-500 mb-1">{label}</div>
+      <div className="text-xs font-medium text-slate-400 mb-1">{label}</div>
       {editing ? (
         <textarea
-          className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 resize-y min-h-[60px]"
+          className="w-full px-3 py-2 bg-slate-800/90 border border-slate-700 text-white rounded-xl text-sm focus:outline-none focus:border-blue-500 resize-y min-h-[60px]"
           value={value}
           onChange={(e) => onChange(e.target.value)}
         />
       ) : (
-        <div className="text-sm text-gray-800 leading-relaxed">
-          {value || <span className="text-gray-400 italic">Not recorded</span>}
+        <div className="text-sm text-slate-200 leading-relaxed">
+          {value || <span className="text-slate-500 italic">Not recorded</span>}
         </div>
       )}
     </div>

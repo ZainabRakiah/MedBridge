@@ -25,9 +25,9 @@ export default function StepIndicator({ currentStep, steps }: StepIndicatorProps
                 <div
                   className={clsx(
                     "flex items-center justify-center h-9 w-9 rounded-full text-sm font-bold transition-all shrink-0",
-                    isCompleted && "bg-accent text-white",
-                    isCurrent && "bg-primary text-white ring-4 ring-primary/20",
-                    isFuture && "bg-gray-200 text-gray-500"
+                    isCompleted && "bg-emerald-600 text-white shadow-lg shadow-emerald-600/20",
+                    isCurrent && "bg-blue-600 text-white ring-4 ring-blue-500/20 shadow-lg shadow-blue-600/30",
+                    isFuture && "bg-slate-800 text-slate-500 border border-slate-700"
                   )}
                 >
                   {isCompleted ? (
@@ -39,9 +39,9 @@ export default function StepIndicator({ currentStep, steps }: StepIndicatorProps
                 <span
                   className={clsx(
                     "mt-2 text-xs sm:text-sm whitespace-nowrap transition-colors",
-                    isCompleted && "text-accent font-medium",
-                    isCurrent && "text-primary font-bold",
-                    isFuture && "text-gray-400"
+                    isCompleted && "text-emerald-400 font-medium",
+                    isCurrent && "text-blue-400 font-semibold",
+                    isFuture && "text-slate-500"
                   )}
                 >
                   {label}
@@ -53,7 +53,7 @@ export default function StepIndicator({ currentStep, steps }: StepIndicatorProps
                 <div
                   className={clsx(
                     "flex-1 h-0.5 mx-2 sm:mx-4 mt-[-1.25rem] transition-colors",
-                    stepNum < currentStep ? "bg-accent" : "bg-gray-200"
+                    stepNum < currentStep ? "bg-emerald-600" : "bg-slate-750 bg-slate-700"
                   )}
                 />
               )}
