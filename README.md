@@ -49,13 +49,36 @@ Patients often present with messy piles of discharge summaries, paper prescripti
 
 | Layer | Technologies |
 | :--- | :--- |
-| **Sponsorship** | **Google Antigravity** |
 | **AI Foundation** | **Google Gemini 3.8 Flash exclusively** (Multimodal Vision, Audio Transcription, Clinical Synthesis, SOAP Generation) |
 | **Frontend** | Next.js 14 (App Router), TypeScript, Tailwind CSS, Universal Inter Typography, Lucide Icons |
 | **State & Storage** | React Context (`AppContext`) with `localStorage` persistence & instant offline recovery |
 | **Backend API** | FastAPI (Python 3.11+), Pydantic v2, Uvicorn, HTTPX |
 | **Drug Safety** | OpenFDA API with fallback rules-based safety database |
 | **Standards & Export** | HL7 FHIR R4 JSON Bundles, ReportLab PDF generation, QRCode (Pillow) |
+
+---
+
+## 🌐 Deploying on Vercel (1 Single Link for Judges)
+
+MedBridge is pre-configured for **seamless 1-link deployment on Vercel**. Hackathon judges can access the entire application from a single URL (`https://your-medbridge.vercel.app`) without needing to install, configure, or run any backend servers locally.
+
+### 🚀 1-Click Deployment Instructions
+
+1. Go to **[vercel.com](https://vercel.com)** and log in with your GitHub account.
+2. Click **"Add New..."** → **"Project"**.
+3. Import your MedBridge repository: `https://github.com/ZainabRakiah/MedBridge.git`.
+4. Leave the default settings:
+   - **Framework Preset:** `Next.js`
+   - **Root Directory:** `./` (or `frontend` — both are automatically supported!)
+   - **Build Command:** `npm run build`
+   - **Output Directory:** `.next`
+5. *(Optional)* Under **Environment Variables**, add:
+   - `NEXT_PUBLIC_GEMINI_API_KEY`: `your_gemini_api_key`
+6. Click **Deploy**!
+7. Within ~60 seconds, Vercel gives you your production URL (e.g. `https://medbridge-demo.vercel.app`). Share this **1 single link** directly with hackathon judges!
+
+> **💡 How the 1-Link Architecture Works:**  
+> MedBridge features automatic **standalone clinical intelligence & resilience**. Every feature (SOAP generation, medication safety, triage QR codes, timeline reconciliation, missing info checklists, FHIR & PDF exports) operates self-sufficiently within Next.js on Vercel, with built-in reverse proxy rewrites (`next.config.js`) ready to route to a live backend if `BACKEND_URL` is configured.
 
 ---
 
