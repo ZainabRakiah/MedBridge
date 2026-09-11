@@ -129,11 +129,44 @@ export default function ConsultationPage() {
     return `${m.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;
   };
 
+  const recognitionRef = useRef<any>(null);
+  const liveTranscriptRef = useRef<string>("");
+
   // ── Recording functions ──
   const startRecording = useCallback(async () => {
     try {
       setRecordError("");
       setRecordWarning("");
+      liveTranscriptRef.current = "";
+
+      // Initialize Web Speech API for real-time speech capture
+      if (typeof window !== "undefined" && ("webkitSpeechRecognition" in window || "SpeechRecognition" in window)) {
+        try {
+          const SpeechRec = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+          const rec = new SpeechRec();
+          rec.continuous = true;
+          rec.interimResults = true;
+          rec.lang = "en-US";
+          rec.onresult = (event: any) => {
+            let fullText = "";
+            for (let i = 0; i < event.results.length; i++) {
+              fullText += event.results[i][0].transcript + " ";
+            }
+            const trimmed = fullText.trim();
+            if (trimmed) {
+              liveTranscriptRef.current = trimmed;
+              setTranscript(trimmed);
+              setEditedTranscript(trimmed);
+            }
+          };
+          rec.onerror = () => {};
+          rec.start();
+          recognitionRef.current = rec;
+        } catch {
+          // Non-blocking
+        }
+      }
+
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       streamRef.current = stream;
       const mediaRecorder = new MediaRecorder(stream);
@@ -148,11 +181,17 @@ export default function ConsultationPage() {
       setIsRecording(true);
       setTimer(0);
     } catch {
-      setRecordError("Transcription failed. Please re-record.");
+      setRecordError("Microphone permission required or recording failed. Please re-record.");
     }
   }, [setIsRecording]);
 
   const stopRecording = useCallback(async () => {
+    if (recognitionRef.current) {
+      try {
+        recognitionRef.current.stop();
+      } catch {}
+    }
+
     if (!mediaRecorderRef.current) return;
 
     return new Promise<void>((resolve) => {
@@ -168,17 +207,29 @@ export default function ConsultationPage() {
 
         try {
           const result = await transcribeAudio(blob);
-          if (!result?.transcript?.trim()) {
+          const speechFromMic = liveTranscriptRef.current.trim();
+          const isFallback = Boolean((result as any)?.fallback);
+          const finalTranscript =
+            (isFallback && speechFromMic) ? speechFromMic : (result?.transcript?.trim() || speechFromMic);
+
+          if (!finalTranscript) {
             setRecordWarning("No speech detected in recording. Please try again.");
             return;
           }
-          setTranscript(result.transcript);
-          setEditedTranscript(result.transcript);
-          setLanguage(result.language);
-          setAudioDuration(result.duration);
+          setTranscript(finalTranscript);
+          setEditedTranscript(finalTranscript);
+          setLanguage(result?.language || "en");
+          setAudioDuration(result?.duration || 10);
           setStep(3);
         } catch {
-          setRecordError("Transcription failed. Please re-record.");
+          if (liveTranscriptRef.current.trim()) {
+            const speech = liveTranscriptRef.current.trim();
+            setTranscript(speech);
+            setEditedTranscript(speech);
+            setStep(3);
+          } else {
+            setRecordError("Transcription failed. Please re-record.");
+          }
         } finally {
           setIsTranscribing(false);
         }

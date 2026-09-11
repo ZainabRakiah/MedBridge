@@ -84,14 +84,15 @@ export interface TimelineEvent {
 
 export interface SafetyFlag {
   id: string;
-  flag_type: string;
+  flag_type?: string;
   severity: "HIGH" | "MODERATE" | "LOW";
-  drug1: string;
-  drug2: string;
+  title?: string;
+  drug1?: string;
+  drug2?: string;
   description: string;
-  action: string;
-  source: string;
-  requires_verification: boolean;
+  action?: string;
+  source?: string;
+  requires_verification?: boolean;
 }
 
 export interface ConflictItem {

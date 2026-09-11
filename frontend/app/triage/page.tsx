@@ -6,12 +6,12 @@ import { useState } from "react";
 import { QrCode, Shield, Pill, Heart, AlertTriangle, Loader2, Printer, Download, Clock, User } from "lucide-react";
 
 export default function TriagePage() {
-  const { currentPatient, updateTriageCard } = useApp();
+  const { currentPatient, patients, updateTriageCard } = useApp();
   const [loading, setLoading] = useState(false);
   const [qrLoading, setQrLoading] = useState(false);
   const [qrData, setQrData] = useState<{ qr_image_base64: string; expires_at: string; token: string } | null>(null);
 
-  const patient = currentPatient;
+  const patient = currentPatient || (patients && patients.length > 0 ? patients[0] : null);
   const card = patient?.triage_card;
 
   const generateCard = async () => {
@@ -136,9 +136,9 @@ export default function TriagePage() {
                       <Heart className="w-4 h-4 text-orange-400" />
                       <h3 className="text-xs font-bold text-orange-400 uppercase tracking-wider">Allergies</h3>
                     </div>
-                    {card.allergies.length > 0 ? (
+                    {(card.allergies || []).length > 0 ? (
                       <div className="flex flex-wrap gap-2">
-                        {card.allergies.map((a, i) => (
+                        {(card.allergies || []).map((a, i) => (
                           <span key={i} className="px-3 py-1.5 rounded-xl bg-orange-500/15 border border-orange-500/40 text-sm font-bold text-orange-400">
                             ⚠ {a}
                           </span>
@@ -153,9 +153,9 @@ export default function TriagePage() {
                       <Pill className="w-4 h-4 text-emerald-400" />
                       <h3 className="text-xs font-bold text-emerald-400 uppercase tracking-wider">Current Medications</h3>
                     </div>
-                    {card.current_medications.length > 0 ? (
+                    {(card.current_medications || []).length > 0 ? (
                       <div className="space-y-1.5">
-                        {card.current_medications.map((m, i) => (
+                        {(card.current_medications || []).map((m, i) => (
                           <div key={i} className="flex items-center gap-2 p-2 rounded-lg bg-slate-800/60">
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
                             <p className="text-sm text-white">{m}</p>
@@ -171,9 +171,9 @@ export default function TriagePage() {
                       <Shield className="w-4 h-4 text-blue-400" />
                       <h3 className="text-xs font-bold text-blue-400 uppercase tracking-wider">Known Conditions</h3>
                     </div>
-                    {card.known_conditions.length > 0 ? (
+                    {(card.known_conditions || []).length > 0 ? (
                       <div className="space-y-1">
-                        {card.known_conditions.map((c, i) => (
+                        {(card.known_conditions || []).map((c, i) => (
                           <p key={i} className="text-sm text-slate-300">• {c}</p>
                         ))}
                       </div>
@@ -189,13 +189,13 @@ export default function TriagePage() {
                   )}
 
                   {/* Critical warnings */}
-                  {card.critical_warnings.length > 0 && (
+                  {(card.critical_warnings || []).length > 0 && (
                     <div>
                       <div className="flex items-center gap-2 mb-2">
                         <AlertTriangle className="w-4 h-4 text-red-400" />
                         <h3 className="text-xs font-bold text-red-400 uppercase tracking-wider">Critical Warnings</h3>
                       </div>
-                      {card.critical_warnings.map((w, i) => (
+                      {(card.critical_warnings || []).map((w, i) => (
                         <div key={i} className="flex items-start gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/30 mb-2">
                           <AlertTriangle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
                           <p className="text-sm text-red-300">{w}</p>
@@ -205,10 +205,10 @@ export default function TriagePage() {
                   )}
 
                   {/* AI flags */}
-                  {card.ai_flags.length > 0 && (
+                  {(card.ai_flags || []).length > 0 && (
                     <div className="p-4 bg-amber-500/8 border border-amber-500/20 rounded-xl">
                       <h3 className="text-xs font-bold text-amber-400 uppercase tracking-wider mb-2">AI Flags</h3>
-                      {card.ai_flags.map((f, i) => <p key={i} className="text-xs text-amber-300">• {f}</p>)}
+                      {(card.ai_flags || []).map((f, i) => <p key={i} className="text-xs text-amber-300">• {f}</p>)}
                     </div>
                   )}
                 </div>

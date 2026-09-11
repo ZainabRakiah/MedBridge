@@ -6,16 +6,17 @@ import { useState } from "react";
 import { ArrowRight, Loader2, Download, FileText } from "lucide-react";
 
 export default function ReferralPage() {
-  const { currentPatient } = useApp();
+  const { currentPatient, patients } = useApp();
+  const activePatient = currentPatient || (patients && patients.length > 0 ? patients[0] : null);
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(false);
   const [referral, setReferral] = useState<Record<string, unknown> | null>(null);
 
   const generate = async () => {
-    if (!currentPatient || !reason.trim()) return;
+    if (!activePatient || !reason.trim()) return;
     setLoading(true);
     try {
-      const result = await generateReferral(currentPatient, reason);
+      const result = await generateReferral(activePatient, reason);
       setReferral(result);
     } finally {
       setLoading(false);
@@ -24,15 +25,17 @@ export default function ReferralPage() {
 
   const downloadReferral = () => {
     if (!referral) return;
-    const text = Object.entries(referral)
-      .filter(([k]) => k !== "disclaimer")
-      .map(([k, v]) => `${k.replace(/_/g, " ").toUpperCase()}:\n${Array.isArray(v) ? v.join("\n") : v}`)
-      .join("\n\n");
-    const blob = new Blob([`MEDBRIDGE REFERRAL DRAFT\n\n${text}\n\n---\n${referral.disclaimer}`], { type: "text/plain" });
+    const text = referral.referral_letter
+      ? String(referral.referral_letter)
+      : Object.entries(referral)
+          .filter(([k]) => k !== "disclaimer")
+          .map(([k, v]) => `${k.replace(/_/g, " ").toUpperCase()}:\n${Array.isArray(v) ? v.join("\n") : v}`)
+          .join("\n\n");
+    const blob = new Blob([`MEDBRIDGE REFERRAL DRAFT\n\n${text}\n\n---\n${referral.disclaimer || "AI-generated draft — requires clinician review before submission"}`], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `referral_${currentPatient?.name?.replace(/\s+/g, "_")}.txt`;
+    a.download = `referral_${activePatient?.name?.replace(/\s+/g, "_") || "patient"}.txt`;
     a.click();
   };
 
@@ -47,7 +50,7 @@ export default function ReferralPage() {
           <p className="text-slate-400 text-sm mt-1">AI-generated referral draft — requires clinician review and approval</p>
         </div>
 
-        {!currentPatient ? (
+        {!activePatient ? (
           <div className="text-center py-20 text-slate-500">
             <FileText className="w-14 h-14 mx-auto mb-3 opacity-20" />
             <p>Select a patient to generate a referral</p>
@@ -67,13 +70,13 @@ export default function ReferralPage() {
                 <button
                   onClick={generate}
                   disabled={loading || !reason.trim()}
-                  className="flex items-center gap-2 bg-pink-600 hover:bg-pink-500 text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition-all disabled:opacity-40 shadow-lg shadow-pink-600/20"
+                  className="flex items-center gap-2 bg-pink-600 hover:bg-pink-500 text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition-all disabled:opacity-40 shadow-lg shadow-pink-600/20 cursor-pointer"
                 >
                   {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <ArrowRight className="w-4 h-4" />}
                   Generate Referral Draft
                 </button>
                 {referral && (
-                  <button onClick={downloadReferral} className="flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-white px-5 py-2.5 rounded-xl text-sm transition-all">
+                  <button onClick={downloadReferral} className="flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-white px-5 py-2.5 rounded-xl text-sm transition-all cursor-pointer">
                     <Download className="w-4 h-4" />
                     Download
                   </button>
@@ -87,6 +90,12 @@ export default function ReferralPage() {
                   <h2 className="text-lg font-semibold text-white">Referral Summary — DRAFT</h2>
                   <span className="px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/30 text-xs font-bold text-amber-400">DRAFT — REQUIRES REVIEW</span>
                 </div>
+
+                {referral.referral_letter ? (
+                  <div className="p-4 bg-slate-900/80 rounded-xl border border-slate-700/60 font-mono text-xs text-slate-300 whitespace-pre-wrap leading-relaxed">
+                    {String(referral.referral_letter)}
+                  </div>
+                ) : null}
 
                 {[
                   ["reason_for_referral", "Reason for Referral"],
@@ -117,7 +126,7 @@ export default function ReferralPage() {
                 ) : null)}
 
                 <div className="p-4 bg-amber-500/8 border border-amber-500/20 rounded-xl">
-                  <p className="text-xs text-amber-400 font-medium">{String(referral.disclaimer)}</p>
+                  <p className="text-xs text-amber-400 font-medium">{String(referral.disclaimer || "AI-generated draft — requires clinician review and signature before clinical submission")}</p>
                 </div>
               </div>
             )}

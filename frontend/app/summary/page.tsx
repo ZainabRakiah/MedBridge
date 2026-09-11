@@ -31,11 +31,11 @@ function Section({ title, icon: Icon, children, defaultOpen = true }: { title: s
 }
 
 export default function SummaryPage() {
-  const { currentPatient, updateClinicalSummary, updatePatientConflicts, updatePatientMissingInfo } = useApp();
+  const { currentPatient, patients, updateClinicalSummary, updatePatientConflicts, updatePatientMissingInfo } = useApp();
   const [loading, setLoading] = useState(false);
   const [fhirLoading, setFhirLoading] = useState(false);
 
-  const patient = currentPatient;
+  const patient = currentPatient || (patients && patients.length > 0 ? patients[0] : null);
   const summary = patient?.clinical_summary;
 
   const generateSummary = async () => {
@@ -58,13 +58,22 @@ export default function SummaryPage() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `medbridge_fhir_${patient.name.replace(/\s+/g, "_")}.json`;
+      a.download = `medbridge_fhir_${(patient.name || "patient").replace(/\s+/g, "_")}.json`;
       a.click();
       URL.revokeObjectURL(url);
     } finally {
       setFhirLoading(false);
     }
   };
+
+  const relevantHistory = summary?.relevant_history || [];
+  const allergies = summary?.allergies || [];
+  const currentMeds = summary?.current_medications || [];
+  const recentInvs = summary?.recent_investigations || [];
+  const aiFlags = summary?.ai_flags || [];
+  const questions = summary?.suggested_questions || [];
+  const conflicts = patient?.conflicts || [];
+  const missingInfo = patient?.missing_info || [];
 
   return (
     <div className="min-h-screen bg-[#0a0f1e] text-white">
@@ -82,7 +91,7 @@ export default function SummaryPage() {
             <button
               onClick={generateSummary}
               disabled={loading || !patient}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold px-4 py-2.5 rounded-xl text-sm transition-all disabled:opacity-40 shadow-lg shadow-blue-600/20"
+              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold px-4 py-2.5 rounded-xl text-sm transition-all disabled:opacity-40 shadow-lg shadow-blue-600/20 cursor-pointer"
             >
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Brain className="w-4 h-4" />}
               Generate Summary
@@ -90,7 +99,7 @@ export default function SummaryPage() {
             <button
               onClick={downloadFhir}
               disabled={fhirLoading || !patient}
-              className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-4 py-2.5 rounded-xl text-sm transition-all disabled:opacity-40"
+              className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-4 py-2.5 rounded-xl text-sm transition-all disabled:opacity-40 cursor-pointer"
             >
               {fhirLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
               Export FHIR
@@ -127,9 +136,9 @@ export default function SummaryPage() {
 
                 <div className="grid md:grid-cols-2 gap-5">
                   <Section title="Relevant History" icon={ClipboardList}>
-                    {summary.relevant_history.length > 0 ? (
+                    {relevantHistory.length > 0 ? (
                       <ul className="space-y-1.5">
-                        {summary.relevant_history.map((h, i) => (
+                        {relevantHistory.map((h, i) => (
                           <li key={i} className="text-sm text-slate-300 flex items-start gap-2">
                             <span className="text-blue-400 mt-0.5">•</span>{h}
                           </li>
@@ -139,9 +148,9 @@ export default function SummaryPage() {
                   </Section>
 
                   <Section title="Allergies" icon={Heart}>
-                    {summary.allergies.length > 0 ? (
+                    {allergies.length > 0 ? (
                       <div className="flex flex-wrap gap-2">
-                        {summary.allergies.map((a, i) => (
+                        {allergies.map((a, i) => (
                           <span key={i} className="px-3 py-1.5 rounded-xl bg-orange-500/10 border border-orange-500/30 text-sm text-orange-400 font-medium">
                             ⚠ {a}
                           </span>
@@ -151,16 +160,16 @@ export default function SummaryPage() {
                   </Section>
 
                   <Section title="Current Medications" icon={Pill}>
-                    {summary.current_medications.length > 0 ? (
+                    {currentMeds.length > 0 ? (
                       <div className="space-y-2">
-                        {summary.current_medications.slice(0, 6).map((m, i) => (
+                        {currentMeds.slice(0, 6).map((m, i) => (
                           <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-slate-900/40">
                             <div>
                               <p className="text-sm text-white">{m.name} {m.strength}</p>
                               <p className="text-xs text-slate-500">{m.frequency}</p>
                             </div>
-                            <span className={`text-xs font-mono ${m.confidence >= 0.8 ? "text-emerald-400" : m.confidence >= 0.6 ? "text-amber-400" : "text-red-400"}`}>
-                              {Math.round(m.confidence * 100)}%
+                            <span className={`text-xs font-mono ${(m.confidence || 0.9) >= 0.8 ? "text-emerald-400" : (m.confidence || 0.9) >= 0.6 ? "text-amber-400" : "text-red-400"}`}>
+                              {Math.round((m.confidence || 0.9) * 100)}%
                             </span>
                           </div>
                         ))}
@@ -169,9 +178,9 @@ export default function SummaryPage() {
                   </Section>
 
                   <Section title="Recent Investigations" icon={FileText}>
-                    {summary.recent_investigations.length > 0 ? (
+                    {recentInvs.length > 0 ? (
                       <ul className="space-y-1.5">
-                        {summary.recent_investigations.map((inv, i) => (
+                        {recentInvs.map((inv, i) => (
                           <li key={i} className="text-sm text-slate-300 flex items-start gap-2">
                             <span className="text-purple-400 mt-0.5">•</span>{inv}
                           </li>
@@ -182,10 +191,10 @@ export default function SummaryPage() {
                 </div>
 
                 {/* AI flags */}
-                {summary.ai_flags.length > 0 && (
-                  <Section title={`AI Safety Flags (${summary.ai_flags.length})`} icon={AlertTriangle}>
+                {aiFlags.length > 0 && (
+                  <Section title={`AI Safety Flags (${aiFlags.length})`} icon={AlertTriangle}>
                     <div className="space-y-2">
-                      {summary.ai_flags.map((flag, i) => (
+                      {aiFlags.map((flag, i) => (
                         <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-amber-500/8 border border-amber-500/20">
                           <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
                           <p className="text-sm text-amber-200">{flag}</p>
@@ -196,10 +205,10 @@ export default function SummaryPage() {
                 )}
 
                 {/* Suggested questions */}
-                {summary.suggested_questions.length > 0 && (
+                {questions.length > 0 && (
                   <Section title="Questions for Clinician Review" icon={ClipboardList} defaultOpen={false}>
                     <div className="space-y-2">
-                      {summary.suggested_questions.map((q, i) => (
+                      {questions.map((q, i) => (
                         <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-slate-900/40 border border-slate-700">
                           <span className="text-blue-400 font-semibold text-sm">{i + 1}.</span>
                           <p className="text-sm text-slate-300">{q}</p>
@@ -217,7 +226,7 @@ export default function SummaryPage() {
                 <button
                   onClick={generateSummary}
                   disabled={loading}
-                  className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition-all disabled:opacity-40"
+                  className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition-all disabled:opacity-40 cursor-pointer"
                 >
                   {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Brain className="w-4 h-4" />}
                   Generate AI Summary
@@ -226,18 +235,18 @@ export default function SummaryPage() {
             )}
 
             {/* Conflicts */}
-            {patient.conflicts.length > 0 && (
-              <Section title={`Document Conflicts (${patient.conflicts.length})`} icon={GitCompare}>
+            {conflicts.length > 0 && (
+              <Section title={`Document Conflicts (${conflicts.length})`} icon={GitCompare}>
                 <div className="space-y-4">
-                  {patient.conflicts.map((c, i) => <ConflictAlertCard key={i} conflict={c} />)}
+                  {conflicts.map((c, i) => <ConflictAlertCard key={i} conflict={c} />)}
                 </div>
               </Section>
             )}
 
             {/* Missing info */}
-            {patient.missing_info.length > 0 && (
-              <Section title={`Missing Information (${patient.missing_info.length})`} icon={CheckSquare}>
-                <MissingInfoChecklist items={patient.missing_info} />
+            {missingInfo.length > 0 && (
+              <Section title={`Missing Information (${missingInfo.length})`} icon={CheckSquare}>
+                <MissingInfoChecklist items={missingInfo} />
               </Section>
             )}
 

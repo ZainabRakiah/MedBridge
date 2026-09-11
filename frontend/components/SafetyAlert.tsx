@@ -78,7 +78,7 @@ export default function SafetyAlertCard({ flag, compact = false }: SafetyAlertPr
               {cfg.label}
             </span>
             <span className="text-xs text-slate-400 bg-slate-700/50 px-2 py-0.5 rounded-full">
-              {FLAG_TYPE_LABELS[flag.flag_type] || flag.flag_type}
+              {flag.flag_type ? (FLAG_TYPE_LABELS[flag.flag_type] || flag.flag_type) : (flag.title || "Safety Alert")}
             </span>
           </div>
 

@@ -8,27 +8,29 @@ import { useState } from "react";
 import { Shield, Pill, AlertTriangle, CheckCircle2, Loader2, RefreshCw } from "lucide-react";
 
 export default function MedicationsPage() {
-  const { currentPatient, updatePatientSafetyFlags } = useApp();
+  const { currentPatient, patients, updatePatientSafetyFlags } = useApp();
   const [loading, setLoading] = useState(false);
 
+  const patient = currentPatient || (patients && patients.length > 0 ? patients[0] : null);
+  const medications = patient?.medications || [];
+
   const runSafetyCheck = async () => {
-    if (!currentPatient || currentPatient.medications.length === 0) return;
+    if (!patient || medications.length === 0) return;
     setLoading(true);
     try {
-      const result = await checkMedicationSafety(currentPatient.medications, currentPatient.allergies);
-      updatePatientSafetyFlags(currentPatient.id, result.flags as any);
+      const result = await checkMedicationSafety(medications, patient.allergies || []);
+      updatePatientSafetyFlags(patient.id, result.flags as any);
     } finally {
       setLoading(false);
     }
   };
 
-  const patient = currentPatient;
   const flags = patient?.safety_flags || [];
   const highFlags = flags.filter(f => f.severity === "HIGH");
   const moderateFlags = flags.filter(f => f.severity === "MODERATE");
   const lowFlags = flags.filter(f => f.severity === "LOW");
 
-  const safetyStatus = highFlags.length > 0 ? "CRITICAL" : moderateFlags.length > 0 ? "REVIEW_REQUIRED" : flags.length === 0 && patient?.medications.length ? "OK" : "NOT_CHECKED";
+  const safetyStatus = highFlags.length > 0 ? "CRITICAL" : moderateFlags.length > 0 ? "REVIEW_REQUIRED" : flags.length === 0 && medications.length ? "OK" : "NOT_CHECKED";
 
   return (
     <div className="min-h-screen bg-[#0a0f1e] text-white">
@@ -78,14 +80,20 @@ export default function MedicationsPage() {
               <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-5">
                 <h3 className="text-sm font-semibold text-white mb-4 flex items-center gap-2">
                   <Pill className="w-4 h-4 text-emerald-400" />
-                  Medication List ({patient.medications.length})
+                  Medication List ({medications.length})
                 </h3>
-                {patient.medications.length === 0 ? (
+                {medications.length === 0 ? (
                   <p className="text-sm text-slate-500 text-center py-6">No medications extracted yet</p>
                 ) : (
                   <div className="space-y-3">
-                    {patient.medications.map((med, i) => {
-                      const hasFlag = flags.some(f => f.drug1.toLowerCase().includes(med.name.toLowerCase()) || f.drug2.toLowerCase().includes(med.name.toLowerCase()));
+                    {medications.map((med, i) => {
+                      const medName = (med.name || "").toLowerCase();
+                      const hasFlag = flags.some(f => 
+                        (f.drug1 && f.drug1.toLowerCase().includes(medName)) ||
+                        (f.drug2 && f.drug2.toLowerCase().includes(medName)) ||
+                        (f.title && f.title.toLowerCase().includes(medName)) ||
+                        (f.description && f.description.toLowerCase().includes(medName))
+                      );
                       return (
                         <div
                           key={i}
