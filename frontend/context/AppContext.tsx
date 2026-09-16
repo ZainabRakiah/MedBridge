@@ -290,9 +290,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [isRecording, setIsRecording] = useState(false);
   const [doctorName, setDoctorName] = useState("Doctor");
 
+  const ACTIVE_PATIENT_KEY = "medbridge_active_patient_id";
+
+  const handleSetCurrentPatient = useCallback((patient: Patient | null) => {
+    setCurrentPatient(patient);
+    if (patient?.id) {
+      localStorage.setItem(ACTIVE_PATIENT_KEY, patient.id);
+    } else {
+      localStorage.removeItem(ACTIVE_PATIENT_KEY);
+    }
+  }, []);
+
   // Load from localStorage on mount
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
+    const stored = localStorage.getItem(STORAGE_KEY) || localStorage.getItem("aushadh_patients");
     if (stored) {
       try {
         const parsed: Patient[] = JSON.parse(stored);
@@ -333,9 +344,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         }));
         setPatients(deduped);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(deduped));
-        if (deduped.length > 0) {
-          setCurrentPatient(deduped[0]);
-        }
+        localStorage.setItem("aushadh_patients", JSON.stringify(deduped));
+
+        const savedActiveId = localStorage.getItem(ACTIVE_PATIENT_KEY);
+        const active = deduped.find((p) => p.id === savedActiveId) || deduped[0] || null;
+        setCurrentPatient(active);
       } catch {
         setPatients([]);
       }
@@ -348,6 +361,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (patients.length > 0) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(patients));
+      localStorage.setItem("aushadh_patients", JSON.stringify(patients));
     }
   }, [patients]);
 
@@ -531,7 +545,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       value={{
         patients,
         currentPatient,
-        setCurrentPatient,
+        setCurrentPatient: handleSetCurrentPatient,
         addPatient,
         updatePatient,
         deletePatient,
