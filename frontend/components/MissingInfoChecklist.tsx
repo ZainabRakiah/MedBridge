@@ -26,6 +26,8 @@ const CATEGORY_ICONS: Record<string, typeof AlertCircle> = {
 export default function MissingInfoChecklist({ items }: MissingInfoChecklistProps) {
   const [checked, setChecked] = useState<Set<string>>(new Set());
 
+  const safeItems = (Array.isArray(items) ? items : []).filter(Boolean);
+
   const toggle = (id: string) => {
     setChecked((prev) => {
       const next = new Set(prev);
@@ -35,11 +37,11 @@ export default function MissingInfoChecklist({ items }: MissingInfoChecklistProp
     });
   };
 
-  const highPriority = items.filter((i) => i.importance === "HIGH");
-  const moderate = items.filter((i) => i.importance === "MODERATE");
-  const low = items.filter((i) => i.importance === "LOW");
+  const highPriority = safeItems.filter((i) => i.importance === "HIGH");
+  const moderate = safeItems.filter((i) => i.importance === "MODERATE");
+  const low = safeItems.filter((i) => i.importance !== "HIGH" && i.importance !== "MODERATE");
 
-  if (items.length === 0) {
+  if (safeItems.length === 0) {
     return (
       <div className="text-center py-10 text-slate-500">
         <CheckSquare className="w-10 h-10 mx-auto mb-2 opacity-30" />
@@ -54,17 +56,20 @@ export default function MissingInfoChecklist({ items }: MissingInfoChecklistProp
       <div className="mb-5">
         <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-3">{label}</h4>
         <div className="space-y-2">
-          {groupItems.map((item) => {
-            const Icon = CATEGORY_ICONS[item.category] || Info;
-            const done = checked.has(item.id);
-            const imp = IMPORTANCE_CONFIG[item.importance];
+          {groupItems.map((item, idx) => {
+            if (!item) return null;
+            const itemId = item.id || `m_${idx}`;
+            const Icon = CATEGORY_ICONS[item.category || "info"] || Info;
+            const done = checked.has(itemId);
+            const impKey = (item.importance || "MODERATE") as keyof typeof IMPORTANCE_CONFIG;
+            const imp = IMPORTANCE_CONFIG[impKey] || IMPORTANCE_CONFIG.MODERATE;
             return (
               <div
-                key={item.id}
+                key={itemId}
                 className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
                   done ? "border-emerald-500/30 bg-emerald-500/5 opacity-60" : "border-slate-700/50 bg-slate-800/40 hover:bg-slate-800/70"
                 }`}
-                onClick={() => toggle(item.id)}
+                onClick={() => toggle(itemId)}
               >
                 <div className="mt-0.5 shrink-0">
                   {done ? (
@@ -77,7 +82,7 @@ export default function MissingInfoChecklist({ items }: MissingInfoChecklistProp
                   <div className="flex items-center gap-2 mb-1">
                     <span className={`w-1.5 h-1.5 rounded-full ${imp.dot}`} />
                     <p className={`text-sm font-medium ${done ? "line-through text-slate-500" : "text-white"}`}>
-                      {item.description}
+                      {item.description || "Missing clinical detail"}
                     </p>
                   </div>
                   {item.suggested_action && !done && (
@@ -101,12 +106,12 @@ export default function MissingInfoChecklist({ items }: MissingInfoChecklistProp
       <div className="mb-5">
         <div className="flex items-center justify-between text-xs text-slate-400 mb-1.5">
           <span>Verification progress</span>
-          <span className="text-white font-medium">{completedCount}/{items.length}</span>
+          <span className="text-white font-medium">{completedCount}/{safeItems.length}</span>
         </div>
         <div className="h-1.5 bg-slate-700 rounded-full overflow-hidden">
           <div
             className="h-full bg-emerald-500 rounded-full transition-all duration-500"
-            style={{ width: `${(completedCount / items.length) * 100}%` }}
+            style={{ width: `${(completedCount / safeItems.length) * 100}%` }}
           />
         </div>
       </div>
@@ -121,3 +126,4 @@ export default function MissingInfoChecklist({ items }: MissingInfoChecklistProp
     </div>
   );
 }
+

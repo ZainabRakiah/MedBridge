@@ -4,10 +4,10 @@ import { useApp, ClinicalSummary } from "@/context/AppContext";
 import ConflictAlertCard from "@/components/ConflictAlert";
 import MissingInfoChecklist from "@/components/MissingInfoChecklist";
 import { generateClinicalSummary, exportFhirBundle } from "@/services/api";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   FileText, AlertTriangle, GitCompare, CheckSquare, Brain,
-  Download, Loader2, RefreshCw, ChevronDown, ChevronRight,
+  Download, Loader2, ChevronDown, ChevronRight,
   Pill, Heart, ClipboardList, Stethoscope,
 } from "lucide-react";
 
@@ -31,9 +31,14 @@ function Section({ title, icon: Icon, children, defaultOpen = true }: { title: s
 }
 
 export default function SummaryPage() {
-  const { currentPatient, patients, updateClinicalSummary, updatePatientConflicts, updatePatientMissingInfo } = useApp();
+  const { currentPatient, patients, updateClinicalSummary } = useApp();
+  const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [fhirLoading, setFhirLoading] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const patient = currentPatient || (patients && patients.length > 0 ? patients[0] : null);
   const summary = patient?.clinical_summary;
@@ -43,7 +48,9 @@ export default function SummaryPage() {
     setLoading(true);
     try {
       const result = await generateClinicalSummary(patient);
-      updateClinicalSummary(patient.id, result as unknown as ClinicalSummary);
+      if (result) {
+        updateClinicalSummary(patient.id, result as unknown as ClinicalSummary);
+      }
     } finally {
       setLoading(false);
     }
@@ -58,7 +65,7 @@ export default function SummaryPage() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `medbridge_fhir_${(patient.name || "patient").replace(/\s+/g, "_")}.json`;
+      a.download = `medbridge_fhir_${String(patient.name || "patient").replace(/\s+/g, "_")}.json`;
       a.click();
       URL.revokeObjectURL(url);
     } finally {
@@ -66,14 +73,22 @@ export default function SummaryPage() {
     }
   };
 
-  const relevantHistory = summary?.relevant_history || [];
-  const allergies = summary?.allergies || [];
-  const currentMeds = summary?.current_medications || [];
-  const recentInvs = summary?.recent_investigations || [];
-  const aiFlags = summary?.ai_flags || [];
-  const questions = summary?.suggested_questions || [];
-  const conflicts = patient?.conflicts || [];
-  const missingInfo = patient?.missing_info || [];
+  const relevantHistory = Array.isArray(summary?.relevant_history) ? summary.relevant_history : [];
+  const allergies = Array.isArray(summary?.allergies) ? summary.allergies : [];
+  const currentMeds = Array.isArray(summary?.current_medications) ? summary.current_medications : [];
+  const recentInvs = Array.isArray(summary?.recent_investigations) ? summary.recent_investigations : [];
+  const aiFlags = Array.isArray(summary?.ai_flags) ? summary.ai_flags : [];
+  const questions = Array.isArray(summary?.suggested_questions) ? summary.suggested_questions : [];
+  const conflicts = Array.isArray(patient?.conflicts) ? patient.conflicts : [];
+  const missingInfo = Array.isArray(patient?.missing_info) ? patient.missing_info : [];
+
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-[#0a0f1e] text-white flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#0a0f1e] text-white">
@@ -85,7 +100,9 @@ export default function SummaryPage() {
               <FileText className="w-7 h-7 text-blue-400" />
               Clinical Summary & Verification
             </h1>
-            <p className="text-slate-400 text-sm mt-1">AI-generated summary — requires clinician review before clinical use</p>
+            <p className="text-slate-400 text-sm mt-1">
+              AI-generated summary • {patient?.name || "No patient selected"}
+            </p>
           </div>
           <div className="flex items-center gap-3">
             <button
@@ -110,7 +127,8 @@ export default function SummaryPage() {
         {!patient ? (
           <div className="text-center py-20 text-slate-500">
             <FileText className="w-14 h-14 mx-auto mb-3 opacity-20" />
-            <p>Select a patient to view the clinical summary</p>
+            <p className="font-medium text-slate-400 mb-1">No patient selected</p>
+            <p className="text-sm">Please register or select a patient from the Dashboard.</p>
           </div>
         ) : (
           <div className="space-y-5">
@@ -140,7 +158,7 @@ export default function SummaryPage() {
                       <ul className="space-y-1.5">
                         {relevantHistory.map((h, i) => (
                           <li key={i} className="text-sm text-slate-300 flex items-start gap-2">
-                            <span className="text-blue-400 mt-0.5">•</span>{h}
+                            <span className="text-blue-400 mt-0.5">•</span>{String(h)}
                           </li>
                         ))}
                       </ul>
@@ -152,7 +170,7 @@ export default function SummaryPage() {
                       <div className="flex flex-wrap gap-2">
                         {allergies.map((a, i) => (
                           <span key={i} className="px-3 py-1.5 rounded-xl bg-orange-500/10 border border-orange-500/30 text-sm text-orange-400 font-medium">
-                            ⚠ {a}
+                            ⚠ {String(a)}
                           </span>
                         ))}
                       </div>
@@ -162,17 +180,23 @@ export default function SummaryPage() {
                   <Section title="Current Medications" icon={Pill}>
                     {currentMeds.length > 0 ? (
                       <div className="space-y-2">
-                        {currentMeds.slice(0, 6).map((m, i) => (
-                          <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-slate-900/40">
-                            <div>
-                              <p className="text-sm text-white">{m.name} {m.strength}</p>
-                              <p className="text-xs text-slate-500">{m.frequency}</p>
+                        {currentMeds.slice(0, 8).map((m: any, i: number) => {
+                          const mName = typeof m === "string" ? m : (m?.name || "Medication");
+                          const mStrength = typeof m === "string" ? "" : (m?.strength || "");
+                          const mFreq = typeof m === "string" ? "" : (m?.frequency || "");
+                          const mConf = typeof m === "object" && typeof m?.confidence === "number" ? m.confidence : 0.9;
+                          return (
+                            <div key={i} className="flex items-center justify-between p-2.5 rounded-lg bg-slate-900/40">
+                              <div>
+                                <p className="text-sm text-white font-medium">{mName} {mStrength}</p>
+                                {mFreq && <p className="text-xs text-slate-500">{mFreq}</p>}
+                              </div>
+                              <span className={`text-xs font-mono ${mConf >= 0.8 ? "text-emerald-400" : mConf >= 0.6 ? "text-amber-400" : "text-red-400"}`}>
+                                {Math.round(mConf * 100)}%
+                              </span>
                             </div>
-                            <span className={`text-xs font-mono ${(m.confidence || 0.9) >= 0.8 ? "text-emerald-400" : (m.confidence || 0.9) >= 0.6 ? "text-amber-400" : "text-red-400"}`}>
-                              {Math.round((m.confidence || 0.9) * 100)}%
-                            </span>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     ) : <p className="text-sm text-slate-500">No medications extracted</p>}
                   </Section>
@@ -182,7 +206,7 @@ export default function SummaryPage() {
                       <ul className="space-y-1.5">
                         {recentInvs.map((inv, i) => (
                           <li key={i} className="text-sm text-slate-300 flex items-start gap-2">
-                            <span className="text-purple-400 mt-0.5">•</span>{inv}
+                            <span className="text-purple-400 mt-0.5">•</span>{String(inv)}
                           </li>
                         ))}
                       </ul>
@@ -197,7 +221,7 @@ export default function SummaryPage() {
                       {aiFlags.map((flag, i) => (
                         <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-amber-500/8 border border-amber-500/20">
                           <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                          <p className="text-sm text-amber-200">{flag}</p>
+                          <p className="text-sm text-amber-200">{String(flag)}</p>
                         </div>
                       ))}
                     </div>
@@ -211,7 +235,7 @@ export default function SummaryPage() {
                       {questions.map((q, i) => (
                         <div key={i} className="flex items-start gap-3 p-3 rounded-xl bg-slate-900/40 border border-slate-700">
                           <span className="text-blue-400 font-semibold text-sm">{i + 1}.</span>
-                          <p className="text-sm text-slate-300">{q}</p>
+                          <p className="text-sm text-slate-300">{String(q)}</p>
                         </div>
                       ))}
                     </div>
@@ -222,7 +246,7 @@ export default function SummaryPage() {
               <div className="text-center py-16 bg-slate-800/30 border border-slate-700/50 rounded-2xl">
                 <Brain className="w-14 h-14 mx-auto mb-3 text-blue-400/30" />
                 <p className="text-slate-400 font-medium">No clinical summary generated yet</p>
-                <p className="text-sm text-slate-500 mt-1 mb-5">Upload documents and then click "Generate Summary"</p>
+                <p className="text-sm text-slate-500 mt-1 mb-5">Click "Generate Summary" to run Gemini AI analysis</p>
                 <button
                   onClick={generateSummary}
                   disabled={loading}
@@ -238,7 +262,7 @@ export default function SummaryPage() {
             {conflicts.length > 0 && (
               <Section title={`Document Conflicts (${conflicts.length})`} icon={GitCompare}>
                 <div className="space-y-4">
-                  {conflicts.map((c, i) => <ConflictAlertCard key={i} conflict={c} />)}
+                  {conflicts.map((c, i) => <ConflictAlertCard key={c.id || i} conflict={c} />)}
                 </div>
               </Section>
             )}
@@ -255,7 +279,7 @@ export default function SummaryPage() {
               <p className="text-xs text-slate-500 leading-relaxed">
                 <span className="text-amber-400 font-semibold">⚠ AI Clinical Information Tool:</span>{" "}
                 This summary is AI-generated and does not diagnose conditions or replace a qualified healthcare professional.
-                All information requires verification before clinical use. Review and approve each section before finalizing.
+                All information requires verification before clinical use.
               </p>
             </div>
           </div>
@@ -264,3 +288,4 @@ export default function SummaryPage() {
     </div>
   );
 }
+

@@ -2,14 +2,19 @@
 
 import { useApp, TriageCard } from "@/context/AppContext";
 import { generateTriageCard, generateQRCode } from "@/services/api";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { QrCode, Shield, Pill, Heart, AlertTriangle, Loader2, Printer, Download, Clock, User } from "lucide-react";
 
 export default function TriagePage() {
   const { currentPatient, patients, updateTriageCard } = useApp();
+  const [mounted, setMounted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [qrLoading, setQrLoading] = useState(false);
   const [qrData, setQrData] = useState<{ qr_image_base64: string; expires_at: string; token: string } | null>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const patient = currentPatient || (patients && patients.length > 0 ? patients[0] : null);
   const card = patient?.triage_card;
@@ -19,7 +24,9 @@ export default function TriagePage() {
     setLoading(true);
     try {
       const result = await generateTriageCard(patient);
-      updateTriageCard(patient.id, result as unknown as TriageCard);
+      if (result) {
+        updateTriageCard(patient.id, result as unknown as TriageCard);
+      }
     } finally {
       setLoading(false);
     }
@@ -30,7 +37,9 @@ export default function TriagePage() {
     setQrLoading(true);
     try {
       const result = await generateQRCode(card);
-      setQrData(result);
+      if (result) {
+        setQrData(result);
+      }
     } finally {
       setQrLoading(false);
     }
@@ -40,11 +49,28 @@ export default function TriagePage() {
 
   const downloadQR = () => {
     if (!qrData?.qr_image_base64) return;
+    const imgSrc = qrData.qr_image_base64.startsWith("data:")
+      ? qrData.qr_image_base64
+      : `data:image/svg+xml;base64,${qrData.qr_image_base64}`;
     const a = document.createElement("a");
-    a.href = `data:image/png;base64,${qrData.qr_image_base64}`;
-    a.download = `medbridge_qr_${patient?.name?.replace(/\s+/g, "_") || "patient"}.png`;
+    a.href = imgSrc;
+    a.download = `medbridge_qr_${String(patient?.name || "patient").replace(/\s+/g, "_")}.svg`;
     a.click();
   };
+
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-[#0a0f1e] text-white flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-cyan-500 animate-spin" />
+      </div>
+    );
+  }
+
+  const qrSrc = qrData?.qr_image_base64
+    ? qrData.qr_image_base64.startsWith("data:")
+      ? qrData.qr_image_base64
+      : `data:image/svg+xml;base64,${qrData.qr_image_base64}`
+    : "";
 
   return (
     <div className="min-h-screen bg-[#0a0f1e] text-white">
@@ -56,24 +82,26 @@ export default function TriagePage() {
               <QrCode className="w-7 h-7 text-cyan-400" />
               Emergency Triage Card
             </h1>
-            <p className="text-slate-400 text-sm mt-1">Critical patient information for emergency/triage staff</p>
+            <p className="text-slate-400 text-sm mt-1">
+              Critical patient information for emergency/triage staff • {patient?.name || "No patient selected"}
+            </p>
           </div>
           <div className="flex items-center gap-3">
             <button
               onClick={generateCard}
               disabled={loading || !patient}
-              className="flex items-center gap-2 bg-cyan-600 hover:bg-cyan-500 text-white font-semibold px-4 py-2.5 rounded-xl text-sm transition-all disabled:opacity-40 shadow-lg shadow-cyan-600/20"
+              className="flex items-center gap-2 bg-cyan-600 hover:bg-cyan-500 text-white font-semibold px-4 py-2.5 rounded-xl text-sm transition-all disabled:opacity-40 shadow-lg shadow-cyan-600/20 cursor-pointer"
             >
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Shield className="w-4 h-4" />}
               Generate Card
             </button>
             {card && (
               <>
-                <button onClick={getQR} disabled={qrLoading} className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white px-4 py-2.5 rounded-xl text-sm transition-all">
+                <button onClick={getQR} disabled={qrLoading} className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white px-4 py-2.5 rounded-xl text-sm transition-all cursor-pointer">
                   {qrLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <QrCode className="w-4 h-4" />}
                   Generate QR
                 </button>
-                <button onClick={print} className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white px-4 py-2.5 rounded-xl text-sm transition-all">
+                <button onClick={print} className="flex items-center gap-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white px-4 py-2.5 rounded-xl text-sm transition-all cursor-pointer">
                   <Printer className="w-4 h-4" />
                   Print
                 </button>
@@ -85,17 +113,18 @@ export default function TriagePage() {
         {!patient ? (
           <div className="text-center py-20 text-slate-500">
             <QrCode className="w-14 h-14 mx-auto mb-3 opacity-20" />
-            <p>Select a patient to generate a triage card</p>
+            <p className="font-medium text-slate-400 mb-1">No patient selected</p>
+            <p className="text-sm">Please register or select a patient from the Dashboard.</p>
           </div>
         ) : !card ? (
           <div className="text-center py-20 bg-slate-800/30 border border-slate-700/50 rounded-2xl">
             <Shield className="w-14 h-14 mx-auto mb-3 text-cyan-400/30" />
             <p className="text-slate-400 font-medium">No triage card generated yet</p>
-            <p className="text-sm text-slate-500 mt-1 mb-5">Upload documents and run the full analysis first</p>
+            <p className="text-sm text-slate-500 mt-1 mb-5">Click "Generate Triage Card" to build emergency handoff</p>
             <button
               onClick={generateCard}
               disabled={loading}
-              className="inline-flex items-center gap-2 bg-cyan-600 hover:bg-cyan-500 text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition-all"
+              className="inline-flex items-center gap-2 bg-cyan-600 hover:bg-cyan-500 text-white font-semibold px-5 py-2.5 rounded-xl text-sm transition-all cursor-pointer"
             >
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Shield className="w-4 h-4" />}
               Generate Triage Card
@@ -112,7 +141,7 @@ export default function TriagePage() {
                     <p className="text-xs font-bold text-cyan-400 uppercase tracking-widest">MedBridge — Emergency Handoff</p>
                     <h2 className="text-2xl font-bold text-white mt-1 flex items-center gap-2">
                       <User className="w-6 h-6 text-cyan-400" />
-                      {card.patient_name}
+                      {card.patient_name || patient.name}
                     </h2>
                     {card.blood_group && (
                       <span className="mt-1 inline-block px-3 py-1 bg-red-500/20 border border-red-500/40 rounded-full text-sm font-bold text-red-400">
@@ -123,7 +152,7 @@ export default function TriagePage() {
                   <div className="text-right text-xs text-slate-400">
                     <div className="flex items-center gap-1 text-slate-400 mb-1">
                       <Clock className="w-3.5 h-3.5" />
-                      {new Date(card.last_updated).toLocaleString()}
+                      {card.last_updated ? new Date(card.last_updated).toLocaleString() : new Date().toLocaleString()}
                     </div>
                     <p className="text-amber-400 text-xs font-semibold">⚠ AI-generated — verify before use</p>
                   </div>
@@ -223,20 +252,22 @@ export default function TriagePage() {
                   Emergency QR
                 </h3>
 
-                {qrData?.qr_image_base64 ? (
+                {qrSrc ? (
                   <>
-                    <div className="p-3 bg-white rounded-xl inline-block mb-3">
+                    <div className="p-3 bg-white rounded-xl inline-block mb-3 shadow-lg">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
-                        src={`data:image/png;base64,${qrData.qr_image_base64}`}
+                        src={qrSrc}
                         alt="Emergency QR Code"
                         className="w-48 h-48 mx-auto"
                       />
                     </div>
-                    <p className="text-xs text-slate-400 mb-3">
-                      Expires: {new Date(qrData.expires_at).toLocaleDateString()}
-                    </p>
-                    <button onClick={downloadQR} className="w-full flex items-center justify-center gap-2 bg-slate-700 hover:bg-slate-600 text-white py-2.5 rounded-xl text-sm transition-all">
+                    {qrData?.expires_at && (
+                      <p className="text-xs text-slate-400 mb-3">
+                        Expires: {new Date(qrData.expires_at).toLocaleDateString()}
+                      </p>
+                    )}
+                    <button onClick={downloadQR} className="w-full flex items-center justify-center gap-2 bg-slate-700 hover:bg-slate-600 text-white py-2.5 rounded-xl text-sm transition-all cursor-pointer">
                       <Download className="w-4 h-4" />
                       Download QR
                     </button>
@@ -249,7 +280,7 @@ export default function TriagePage() {
                     <button
                       onClick={getQR}
                       disabled={qrLoading}
-                      className="w-full flex items-center justify-center gap-2 bg-cyan-600 hover:bg-cyan-500 text-white py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-40"
+                      className="w-full flex items-center justify-center gap-2 bg-cyan-600 hover:bg-cyan-500 text-white py-2.5 rounded-xl text-sm font-semibold transition-all disabled:opacity-40 cursor-pointer"
                     >
                       {qrLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <QrCode className="w-4 h-4" />}
                       Generate QR
@@ -259,7 +290,7 @@ export default function TriagePage() {
 
                 <div className="mt-4 p-3 bg-slate-900/60 rounded-xl border border-slate-700/50 text-left">
                   <p className="text-xs text-slate-500 leading-relaxed">
-                    🔒 QR contains only a signed token. No medical data is encoded. Token expires in 24 hours.
+                    🔒 QR contains only a signed token. No raw medical data is encoded. Token expires in 24 hours.
                   </p>
                 </div>
               </div>
@@ -278,3 +309,4 @@ export default function TriagePage() {
     </div>
   );
 }
+
