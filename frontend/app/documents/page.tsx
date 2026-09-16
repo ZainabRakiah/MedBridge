@@ -1,23 +1,29 @@
 "use client";
 
 import { useApp } from "@/context/AppContext";
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import DocumentUploader from "@/components/DocumentUploader";
 import { MedicalDocument } from "@/context/AppContext";
 import { generateTimeline, checkMedicationSafety, detectConflicts, detectMissingInfo } from "@/services/api";
-import { FileText, CheckCircle2, AlertTriangle, Pill, FlaskConical, Stethoscope, ArrowRight, Loader2 } from "lucide-react";
+import { FileText, AlertTriangle, Pill, FlaskConical, Stethoscope, ArrowRight, Loader2 } from "lucide-react";
 
 export default function DocumentsPage() {
   const { currentPatient, patients, setCurrentPatient, addDocument, updatePatientTimeline, updatePatientSafetyFlags, updatePatientConflicts, updatePatientMissingInfo } = useApp();
   const router = useRouter();
+  const [mounted, setMounted] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [processMsg, setProcessMsg] = useState("");
   const [uploadedDocs, setUploadedDocs] = useState<MedicalDocument[]>([]);
 
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const activePatient = currentPatient || (patients && patients.length > 0 ? patients[0] : null);
 
   const handleDocExtracted = useCallback((doc: MedicalDocument) => {
+    if (!doc || !doc.id) return;
     let pid = currentPatient?.id;
     if (!pid && patients && patients.length > 0) {
       pid = patients[0].id;
@@ -26,29 +32,34 @@ export default function DocumentsPage() {
     if (pid) {
       addDocument(pid, doc);
     }
-    setUploadedDocs(prev => [...prev, doc]);
+    setUploadedDocs(prev => [...(prev || []).filter(Boolean), doc]);
   }, [currentPatient, patients, setCurrentPatient, addDocument]);
 
   const runFullAnalysis = async () => {
     const patient = activePatient;
     if (!patient) return;
-    const patientDocs = patient.documents || [];
-    if (patientDocs.length === 0 && uploadedDocs.length === 0) return;
+    const patientDocs = Array.isArray(patient.documents) ? patient.documents : [];
+    const safeUploadedDocs = Array.isArray(uploadedDocs) ? uploadedDocs : [];
+    if (patientDocs.length === 0 && safeUploadedDocs.length === 0) return;
     setProcessing(true);
 
     try {
       const allDocsToAnalyze = Array.from(
-        new Map([...patientDocs, ...uploadedDocs].map(d => [d.id, d])).values()
+        new Map(
+          [...patientDocs, ...safeUploadedDocs]
+            .filter((d): d is MedicalDocument => Boolean(d && d.id))
+            .map(d => [d.id, d])
+        ).values()
       );
 
       // 1. Generate timeline
       setProcessMsg("Building patient timeline...");
       const timeline = await generateTimeline(patient.id, allDocsToAnalyze) as MedicalDocument[];
-      updatePatientTimeline(patient.id, timeline as any);
+      updatePatientTimeline(patient.id, (timeline || []) as any);
 
       // 2. Medication safety
       setProcessMsg("Running medication safety checks...");
-      const meds = patient.medications || [];
+      const meds = Array.isArray(patient.medications) ? patient.medications : [];
       if (meds.length > 0) {
         const safety = await checkMedicationSafety(meds, patient.allergies || []);
         updatePatientSafetyFlags(patient.id, (safety?.flags as any) || []);
@@ -73,13 +84,26 @@ export default function DocumentsPage() {
     }
   };
 
+  const patientDocs = Array.isArray(activePatient?.documents) ? activePatient.documents : [];
+  const safeUploadedDocs = Array.isArray(uploadedDocs) ? uploadedDocs : [];
+
   const allDocs = Array.from(
     new Map(
-      [...(activePatient?.documents || []), ...uploadedDocs].map(d => [d.id, d])
+      [...patientDocs, ...safeUploadedDocs]
+        .filter((d): d is MedicalDocument => Boolean(d && d.id))
+        .map(d => [d.id, d])
     ).values()
   );
 
   const noPatient = !activePatient;
+
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-[#0a0f1e] text-white flex items-center justify-center">
+        <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#0a0f1e] text-white">
@@ -140,6 +164,7 @@ export default function DocumentsPage() {
               <p className="text-sm text-slate-500 text-center py-8">No documents uploaded yet</p>
             ) : (
               allDocs.map((doc) => {
+                if (!doc || !doc.id) return null;
                 const ext = doc.extracted_data || {
                   medications: [],
                   diagnoses: [],
@@ -162,10 +187,10 @@ export default function DocumentsPage() {
 
                     <div className="grid grid-cols-2 gap-2 text-xs">
                       {[
-                        { icon: Pill, label: "Medications", count: ext.medications?.length || 0, color: "text-emerald-400" },
-                        { icon: Stethoscope, label: "Diagnoses", count: ext.diagnoses?.length || 0, color: "text-blue-400" },
-                        { icon: FlaskConical, label: "Lab Results", count: ext.lab_results?.length || 0, color: "text-purple-400" },
-                        { icon: AlertTriangle, label: "Warnings", count: ext.warnings?.length || 0, color: "text-amber-400" },
+                        { icon: Pill, label: "Medications", count: Array.isArray(ext.medications) ? ext.medications.length : 0, color: "text-emerald-400" },
+                        { icon: Stethoscope, label: "Diagnoses", count: Array.isArray(ext.diagnoses) ? ext.diagnoses.length : 0, color: "text-blue-400" },
+                        { icon: FlaskConical, label: "Lab Results", count: Array.isArray(ext.lab_results) ? ext.lab_results.length : 0, color: "text-purple-400" },
+                        { icon: AlertTriangle, label: "Warnings", count: Array.isArray(ext.warnings) ? ext.warnings.length : 0, color: "text-amber-400" },
                       ].map(({ icon: Icon, label, count, color }) => (
                         <div key={label} className="flex items-center gap-1.5">
                           <Icon className={`w-3.5 h-3.5 ${color}`} />
@@ -209,3 +234,4 @@ export default function DocumentsPage() {
     </div>
   );
 }
+

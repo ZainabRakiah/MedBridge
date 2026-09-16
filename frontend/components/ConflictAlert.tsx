@@ -23,8 +23,10 @@ const CONFLICT_TYPE_LABELS: Record<string, string> = {
 };
 
 export default function ConflictAlertCard({ conflict }: ConflictAlertProps) {
-  const severityStyle = SEVERITY_STYLES[conflict.severity as keyof typeof SEVERITY_STYLES] || SEVERITY_STYLES.MODERATE;
-  const typeLabel = CONFLICT_TYPE_LABELS[conflict.conflict_type] || conflict.conflict_type.replace(/_/g, " ");
+  if (!conflict) return null;
+  const severityStyle = SEVERITY_STYLES[(conflict.severity || "MODERATE") as keyof typeof SEVERITY_STYLES] || SEVERITY_STYLES.MODERATE;
+  const rawType = conflict.conflict_type || "medication_dose";
+  const typeLabel = CONFLICT_TYPE_LABELS[rawType] || String(rawType).replace(/_/g, " ");
 
   return (
     <div className={`rounded-2xl border p-5 ${severityStyle}`}>
@@ -43,7 +45,7 @@ export default function ConflictAlertCard({ conflict }: ConflictAlertProps) {
             </span>
             <span className="text-xs text-slate-400">{typeLabel}</span>
           </div>
-          <h4 className="text-sm font-semibold text-white mt-1">{conflict.field}</h4>
+          <h4 className="text-sm font-semibold text-white mt-1">{conflict.field || "Clinical Conflict"}</h4>
         </div>
       </div>
 
@@ -51,17 +53,17 @@ export default function ConflictAlertCard({ conflict }: ConflictAlertProps) {
       <div className="grid grid-cols-2 gap-3 mb-4">
         <div className="p-3 rounded-xl bg-slate-800/60 border border-slate-700/50">
           <p className="text-xs text-slate-500 mb-1 font-medium">Source A</p>
-          <p className="text-sm text-white font-semibold">{conflict.value_a}</p>
-          <p className="text-xs text-slate-500 mt-1">{conflict.source_a}</p>
+          <p className="text-sm text-white font-semibold">{conflict.value_a || "Not specified"}</p>
+          <p className="text-xs text-slate-500 mt-1">{conflict.source_a || "Document"}</p>
         </div>
         <div className="p-3 rounded-xl bg-slate-800/60 border border-slate-700/50">
           <p className="text-xs text-slate-500 mb-1 font-medium">Source B</p>
-          <p className="text-sm text-white font-semibold">{conflict.value_b}</p>
-          <p className="text-xs text-slate-500 mt-1">{conflict.source_b}</p>
+          <p className="text-sm text-white font-semibold">{conflict.value_b || "Not specified"}</p>
+          <p className="text-xs text-slate-500 mt-1">{conflict.source_b || "Document"}</p>
         </div>
       </div>
 
-      <p className="text-sm text-slate-400 leading-relaxed">{conflict.description}</p>
+      <p className="text-sm text-slate-400 leading-relaxed">{conflict.description || "Clinical discrepancy noted."}</p>
 
       <div className="mt-3 flex items-center gap-2 text-xs text-amber-400 border-t border-slate-700/50 pt-3">
         <AlertTriangle className="w-3.5 h-3.5" />
@@ -70,3 +72,4 @@ export default function ConflictAlertCard({ conflict }: ConflictAlertProps) {
     </div>
   );
 }
+

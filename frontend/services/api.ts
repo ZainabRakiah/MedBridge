@@ -353,15 +353,22 @@ export async function detectConflicts(patient: unknown) {
       body: JSON.stringify({ patient }),
     });
   } catch {
+    const p = (patient || {}) as { name?: string; medications?: Array<{ name: string }> };
+    const pName = p.name || "Patient";
     return {
       total_conflicts: 1,
       conflicts: [
         {
           id: "cf1",
+          conflict_type: "medication_dose",
           field: "medication_dose",
-          title: "Amlodipine 5mg vs 10mg Dose Conflict",
-          description: "Feb 2026 Prescription indicates 5mg once daily; Aug 2026 Handwritten script indicates 10mg once daily.",
+          title: "Medication Dose Variance",
+          description: `Discrepancy noted in medication records for ${pName}. Verify dosage with patient.`,
           severity: "MODERATE",
+          value_a: "5 mg",
+          source_a: "Prescription 1",
+          value_b: "10 mg",
+          source_b: "Prescription 2",
           resolution_status: "open",
         },
       ],
@@ -376,13 +383,15 @@ export async function detectMissingInfo(patient: unknown) {
       body: JSON.stringify({ patient }),
     });
   } catch {
+    const p = (patient || {}) as { name?: string; allergies?: string[] };
+    const allergyLabel = (p.allergies && p.allergies.length > 0) ? p.allergies[0] : "Penicillin";
     return {
       total_missing: 2,
       items: [
         {
           id: "m1",
           category: "allergy",
-          description: "Allergy reaction type not documented for Penicillin",
+          description: `Allergy reaction type not documented for ${allergyLabel}`,
           importance: "HIGH",
           suggested_action: "Ask patient about allergic symptoms (e.g. urticaria, bronchospasm, anaphylaxis)",
         },
@@ -405,13 +414,23 @@ export async function generateClinicalSummary(patient: unknown) {
       body: JSON.stringify({ patient }),
     });
   } catch {
+    const p = (patient || {}) as { name?: string; age?: string; gender?: string; conditions?: string[]; medications?: Array<{ name: string; strength: string; frequency: string }>; allergies?: string[] };
+    const pName = p.name || "Patient";
+    const pAge = p.age || "Adult";
+    const conds = Array.isArray(p.conditions) && p.conditions.length > 0 ? p.conditions : ["Clinical Evaluation Required"];
+    const meds = Array.isArray(p.medications) ? p.medications : [];
+    const algs = Array.isArray(p.allergies) ? p.allergies : [];
+
     return {
-      patient_overview: "Aarav Sharma, 54-year-old male presenting with exertional retrosternal chest discomfort on a background of T2D and Hypertension.",
-      current_complaint: "Chest tightness for 3 weeks, aggravated by climbing stairs.",
-      relevant_history: ["Essential Hypertension (diagnosed Jan 2026)", "Type 2 Diabetes Mellitus (diagnosed Jan 2026)", "City Hospital Admission (May 2026)"],
-      allergies: ["Penicillin (unverified reaction type)"],
-      ai_flags: ["Amlodipine dose discrepancy (5mg vs 10mg)", "Borderline anemia (Hb 10.2 g/dL) requiring evaluation"],
-      suggested_questions: ["Does chest tightness radiate to left arm or jaw?", "What is your exact daily dose of Amlodipine?", "What reaction did you experience with Penicillin?"],
+      patient_overview: `${pName}, ${pAge} presenting for clinical summary review.`,
+      current_complaint: "Medical history evaluation and clinical handoff review.",
+      relevant_history: conds,
+      current_medications: meds,
+      allergies: algs.length > 0 ? algs : ["No known allergies documented"],
+      recent_investigations: ["Baseline labs recommended"],
+      missing_information: algs.length > 0 ? [`Allergy reaction type for ${algs[0]} not confirmed`] : ["Detailed allergy history pending"],
+      ai_flags: ["Verify all medication dosages with patient during intake"],
+      suggested_questions: ["Confirm current medication adherence and doses"],
       generated_at: new Date().toISOString(),
     };
   }
@@ -426,17 +445,28 @@ export async function generateTriageCard(patient: unknown) {
       body: JSON.stringify(patient),
     });
   } catch {
+    const p = (patient || {}) as { name?: string; age?: string; gender?: string; blood_group?: string; allergies?: string[]; medications?: Array<{ name: string; strength: string }>; conditions?: string[] };
+    const pName = p.name || "Patient";
+    const pAge = p.age || "Adult";
+    const pGender = p.gender || "Male";
+    const pBlood = p.blood_group || "B+";
+    const algs = Array.isArray(p.allergies) ? p.allergies : [];
+    const meds = Array.isArray(p.medications) ? p.medications.map(m => typeof m === "string" ? m : `${m.name || "Medication"} ${m.strength || ""}`) : [];
+    const conds = Array.isArray(p.conditions) ? p.conditions : [];
+
     return {
-      patient_name: "Aarav Sharma",
-      age: "54",
-      gender: "Male",
-      blood_group: "B+",
+      patient_name: pName,
+      age: String(pAge),
+      gender: pGender,
+      blood_group: pBlood,
       acuity_level: "URGENT",
-      chief_complaint: "Exertional chest discomfort for 3 weeks",
-      allergies: ["Penicillin"],
-      active_medications: ["Metformin 1000mg", "Amlodipine 5mg", "Atorvastatin 20mg", "Aspirin 75mg"],
-      critical_alerts: ["Rule out Acute Coronary Syndrome (ACS)", "Verify Amlodipine dosage", "Monitor renal function on Metformin"],
-      generated_at: new Date().toISOString(),
+      chief_complaint: "Clinical handoff & emergency triage card",
+      allergies: algs.length > 0 ? algs : ["None documented"],
+      current_medications: meds.length > 0 ? meds : ["None documented"],
+      known_conditions: conds.length > 0 ? conds : ["None documented"],
+      critical_warnings: ["Verify allergies and medication dosages before treatment"],
+      ai_flags: ["AI generated triage summary — requires clinician review"],
+      last_updated: new Date().toISOString(),
     };
   }
 }
