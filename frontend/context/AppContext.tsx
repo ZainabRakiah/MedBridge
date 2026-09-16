@@ -402,12 +402,12 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const searchPatients = useCallback(
     (query: string) => {
-      const q = query.toLowerCase();
+      const q = (query || "").toLowerCase();
       return patients.filter(
         (p) =>
-          p.name.toLowerCase().includes(q) ||
-          p.phone.includes(q) ||
-          p.id.includes(q)
+          (p?.name || "").toLowerCase().includes(q) ||
+          (p?.phone || "").includes(q) ||
+          (p?.id || "").includes(q)
       );
     },
     [patients]
@@ -443,7 +443,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           const newConditions = Array.from(new Set([...(p.conditions || []), ...ext.diagnoses]));
           const newMeds = [...(p.medications || [])];
           for (const med of ext.medications) {
-            if (med?.name && !newMeds.find((m) => m.name.toLowerCase() === med.name.toLowerCase())) {
+            if (med?.name && !newMeds.find((m) => m?.name && m.name.toLowerCase() === med.name.toLowerCase())) {
               newMeds.push(med);
             }
           }
@@ -468,7 +468,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         const newConditions = Array.from(new Set([...(prev.conditions || []), ...ext.diagnoses]));
         const newMeds = [...(prev.medications || [])];
         for (const med of ext.medications) {
-          if (med?.name && !newMeds.find((m) => m.name.toLowerCase() === med.name.toLowerCase())) {
+          if (med?.name && !newMeds.find((m) => m?.name && m.name.toLowerCase() === med.name.toLowerCase())) {
             newMeds.push(med);
           }
         }

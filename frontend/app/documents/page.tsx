@@ -156,12 +156,15 @@ export default function DocumentsPage() {
             )}
           </div>
 
-          {/* Uploaded docs summary */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-slate-300 uppercase tracking-wider">Extracted Data</h3>
+          {/* Document list */}
+          <div>
+            <h2 className="text-base font-semibold text-white mb-4">Uploaded Documents ({allDocs.length})</h2>
 
             {allDocs.length === 0 ? (
-              <p className="text-sm text-slate-500 text-center py-8">No documents uploaded yet</p>
+              <div className="bg-slate-800/20 border border-slate-800 rounded-2xl p-8 text-center text-slate-500">
+                <FileText className="w-10 h-10 mx-auto mb-2 opacity-40" />
+                <p className="text-sm">No documents uploaded yet</p>
+              </div>
             ) : (
               allDocs.map((doc) => {
                 if (!doc || !doc.id) return null;
@@ -171,7 +174,7 @@ export default function DocumentsPage() {
                   lab_results: [],
                   warnings: [],
                 };
-                const docType = (doc.type || "document").replace(/_/g, " ");
+                const docType = String(doc?.type || "document").replace(/_/g, " ");
                 const confidence = typeof doc.confidence === "number" ? doc.confidence : 0.94;
                 const confidencePct = Math.round(confidence * 100);
 

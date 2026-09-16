@@ -225,7 +225,7 @@ export default function TimelinePage() {
                         : "bg-slate-700/50 text-slate-400 hover:text-white"
                     }`}
                   >
-                    {type.replace("_", " ")}
+                    {String(type || "").replace(/_/g, " ")}
                   </button>
                 ))}
               </div>

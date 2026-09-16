@@ -448,30 +448,34 @@ export default function ConsultationPage() {
                   <span className="text-xs text-rose-400 font-medium flex items-center gap-1">
                     <AlertTriangle className="h-3 w-3 text-rose-400" /> Allergies:
                   </span>
-                  {(Array.isArray(currentPatient.allergies) ? currentPatient.allergies : (currentPatient.allergies as unknown as string).split(",")).map((a) => (
+                  {(Array.isArray(currentPatient.allergies) ? currentPatient.allergies : String(currentPatient.allergies || "").split(",")).map((a) => (
                     <span
-                      key={a}
+                      key={String(a)}
                       className="text-xs bg-rose-500/15 border border-rose-500/30 text-rose-300 px-2.5 py-0.5 rounded-full"
                     >
-                      {a.trim()}
+                      {String(a).trim()}
                     </span>
                   ))}
                 </div>
               )}
-              {currentPatient.chronic_conditions && (
+              {(currentPatient.chronic_conditions || currentPatient.conditions) && (
                 <div className="flex flex-wrap gap-1.5 items-center">
                   <span className="text-xs text-amber-400 font-medium flex items-center gap-1">
                     <Heart className="h-3 w-3 text-amber-400" /> Chronic:
                   </span>
-                  {currentPatient.chronic_conditions
-                    .split(",")
-                    .filter((c) => !c.trim().startsWith("BG:"))
+                  {(Array.isArray(currentPatient.chronic_conditions)
+                    ? currentPatient.chronic_conditions
+                    : Array.isArray(currentPatient.conditions)
+                    ? currentPatient.conditions
+                    : String(currentPatient.chronic_conditions || "").split(",")
+                  )
+                    .filter((c) => !String(c).trim().startsWith("BG:"))
                     .map((c) => (
                       <span
-                        key={c}
+                        key={String(c)}
                         className="text-xs bg-amber-500/15 border border-amber-500/30 text-amber-300 px-2.5 py-0.5 rounded-full"
                       >
-                        {c.trim()}
+                        {String(c).trim()}
                       </span>
                     ))}
                 </div>
@@ -1149,12 +1153,15 @@ export default function ConsultationPage() {
                       ) : (
                         <div className="flex flex-wrap gap-1.5">
                           {editedSoap.plan.tests_ordered ? (
-                            editedSoap.plan.tests_ordered.split(",").map((t, i) => (
+                            (Array.isArray(editedSoap.plan.tests_ordered)
+                              ? editedSoap.plan.tests_ordered
+                              : String(editedSoap.plan.tests_ordered).split(",")
+                            ).map((t, i) => (
                               <span
                                 key={i}
                                 className="text-xs bg-slate-800 border border-slate-700 text-slate-300 px-3 py-1 rounded-full"
                               >
-                                {t.trim()}
+                                {String(t).trim()}
                               </span>
                             ))
                           ) : (

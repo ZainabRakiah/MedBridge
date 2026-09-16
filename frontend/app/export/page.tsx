@@ -44,13 +44,13 @@ async function exportFhir(soapNote: Record<string, unknown>, patientInfo: unknow
           title: "Clinical Consultation SOAP Summary",
           date: new Date().toISOString(),
           author: [{ display: p.doctor_name || "Consulting Physician" }],
-          subject: { display: p.patient_name || "Aarav Sharma" },
+          subject: { display: p.patient_name || "Patient" },
         },
       },
       {
         resource: {
           resourceType: "Patient",
-          name: [{ text: p.patient_name || "Aarav Sharma" }],
+          name: [{ text: p.patient_name || "Patient" }],
           gender: (p.gender || "male").toLowerCase(),
         },
       },
@@ -222,11 +222,14 @@ export default function ExportPage() {
   const activeSoapNote = soapNote;
 
   const patientInfo: PatientInfoPayload = {
-    patient_name: activePatient.name,
-    age: activePatient.age,
-    gender: activePatient.gender,
-    doctor_name: doctorName,
+    patient_name: activePatient?.name || "Patient",
+    age: activePatient?.age || "N/A",
+    gender: activePatient?.gender || "N/A",
+    doctor_name: doctorName || "Doctor",
   };
+
+  const safePatientName = String(activePatient?.name || "patient").replace(/\s+/g, "-").toLowerCase();
+  const safeConsultId = activeConsultation?.id || "consultation";
 
   const handlePdfExport = async () => {
     try {
@@ -234,7 +237,7 @@ export default function ExportPage() {
       setPdfError("");
       setFhirError("");
       const blob = await exportPdf(activeSoapNote as unknown as Record<string, unknown>, patientInfo);
-      downloadBlob(blob, `aushadh-${activePatient.name.replace(/\s+/g, "-").toLowerCase()}-${activeConsultation.id}.pdf`);
+      downloadBlob(blob, `aushadh-${safePatientName}-${safeConsultId}.pdf`);
     } catch (error) {
       setPdfError(error instanceof Error ? error.message : "Failed to export PDF");
     } finally {
@@ -251,7 +254,7 @@ export default function ExportPage() {
       const blob = new Blob([JSON.stringify(payload, null, 2)], {
         type: "application/fhir+json;charset=utf-8",
       });
-      downloadBlob(blob, `aushadh-${activePatient.name.replace(/\s+/g, "-").toLowerCase()}-${activeConsultation.id}.json`);
+      downloadBlob(blob, `aushadh-${safePatientName}-${safeConsultId}.json`);
     } catch (error) {
       setFhirError(error instanceof Error ? error.message : "Failed to export FHIR JSON");
     } finally {

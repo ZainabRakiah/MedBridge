@@ -7,8 +7,9 @@ import Navbar from "@/components/Navbar";
 
 type TabKey = "profile" | "history" | "medications";
 
-function splitCsv(value?: string): string[] {
-  return (value || "")
+function splitCsv(value?: string | string[]): string[] {
+  if (Array.isArray(value)) return value.map((item) => String(item || "").trim()).filter(Boolean);
+  return String(value || "")
     .split(",")
     .map((item) => item?.trim())
     .filter((item) => Boolean(item));

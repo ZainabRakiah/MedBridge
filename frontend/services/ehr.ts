@@ -26,12 +26,12 @@ export function getPatientById(id: string): Patient | undefined {
 }
 
 export function searchPatients(query: string): Patient[] {
-  const q = query.toLowerCase();
+  const q = (query || "").toLowerCase();
   return loadPatients().filter(
     (p) =>
-      p.name.toLowerCase().includes(q) ||
-      p.phone.includes(q) ||
-      p.id.includes(q)
+      (p?.name || "").toLowerCase().includes(q) ||
+      (p?.phone || "").includes(q) ||
+      (p?.id || "").includes(q)
   );
 }
 

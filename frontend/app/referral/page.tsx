@@ -29,13 +29,13 @@ export default function ReferralPage() {
       ? String(referral.referral_letter)
       : Object.entries(referral)
           .filter(([k]) => k !== "disclaimer")
-          .map(([k, v]) => `${k.replace(/_/g, " ").toUpperCase()}:\n${Array.isArray(v) ? v.join("\n") : v}`)
+          .map(([k, v]) => `${String(k || "").replace(/_/g, " ").toUpperCase()}:\n${Array.isArray(v) ? v.join("\n") : v}`)
           .join("\n\n");
     const blob = new Blob([`MEDBRIDGE REFERRAL DRAFT\n\n${text}\n\n---\n${referral.disclaimer || "AI-generated draft — requires clinician review before submission"}`], { type: "text/plain" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `referral_${activePatient?.name?.replace(/\s+/g, "_") || "patient"}.txt`;
+    a.download = `referral_${String(activePatient?.name || "patient").replace(/\s+/g, "_")}.txt`;
     a.click();
   };
 
